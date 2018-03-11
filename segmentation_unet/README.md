@@ -6,7 +6,7 @@
 ### Result:
 The picture below is a result after a train of 100 epochs.
 (Accuracy: 92%; precesion: 86%; recall: 80%)
-
+![](https://github.com/huijianpzh/Segmentation/blob/master/segmentation_unet/result.png)
 
 ### References:
 [U-Net](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
