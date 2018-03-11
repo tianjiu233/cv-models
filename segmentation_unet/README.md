@@ -9,7 +9,7 @@ The picture below is a result after a train of 100 epochs.
 ![](https://github.com/huijianpzh/Segmentation/blob/master/segmentation_unet/result.png)
 
 ### References:
-[U-Net](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
-[Deep learning for satellite imagery via image segmentation](https://blog.deepsense.ai/deep-learning-for-satellite-imagery-via-image-segmentation/)
+* [U-Net](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
+* [Deep learning for satellite imagery via image segmentation](https://blog.deepsense.ai/deep-learning-for-satellite-imagery-via-image-segmentation/)
 
 
