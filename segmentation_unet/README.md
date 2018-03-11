@@ -13,3 +13,4 @@ The picture below is a result after a train of 100 epochs.
 * [Deep learning for satellite imagery via image segmentation](https://blog.deepsense.ai/deep-learning-for-satellite-imagery-via-image-segmentation/)
 
 
+h.j
