@@ -23,7 +23,13 @@ With pytorch, you are not allowed to do in-place operation on the Variables that
 And I find only ```.clone()``` in the ``` forward() ``` of ```StyleLoss``` is required.
 (Sorry, I actually do not know why it is required here and I find it may be caused by GramMatrix. I add ```.clone()``` to the position ```gram()``` instead of ```self.output=input.clone()``` )
 
-### Results
-
+### Experiment
+#### Input
+Style Picture
+[]!(https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/dancing.jpg)
+Content Picture
+[]!(https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/picasso.jpg)
+#### Result
+[]!()
 
 h.j.
