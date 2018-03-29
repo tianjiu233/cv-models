@@ -25,10 +25,8 @@ And I find only ```.clone()``` in the ``` forward() ``` of ```StyleLoss``` is re
 
 ### Experiment
 #### Input
-Style Picture
-![](https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/dancing.jpg)
-Content Picture
-![](https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/picasso.jpg)
+![Style Picture](https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/dancing.jpg)
+![Content Picture](https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/picasso.jpg)
 #### Result
 []!()
 
