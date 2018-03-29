@@ -28,6 +28,6 @@ And I find only ```.clone()``` in the ``` forward() ``` of ```StyleLoss``` is re
 ![Style Picture](https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/dancing.jpg)
 ![Content Picture](https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/picasso.jpg)
 #### Result
-![]()
+![Result](https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/result.png)
 
 h.j
