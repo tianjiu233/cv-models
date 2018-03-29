@@ -17,7 +17,7 @@ self.target = Variable(target.data.clone(),requires_grad=False)*weight
 ```
 
 #### ```.clone()```
-This method involves the conception ["in-place operation"](http://deeplearning.net/software/theano_versions/dev/extending/inplace.html).
+This method involves the conception ["in-place operation"](http://deeplearning.net/software/theano_versions/dev/extending/inplace.html). ([one blog](https://www.interviewcake.com/concept/java/in-place))
 And you may find more about this concept.
 With pytorch, you are not allowed to do in-place operation on the Variables that you want to do back-propagation.
 And I find only ```.clone()``` in the ``` forward() ``` of ```StyleLoss``` is required.
@@ -28,6 +28,6 @@ And I find only ```.clone()``` in the ``` forward() ``` of ```StyleLoss``` is re
 ![Style Picture](https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/dancing.jpg)
 ![Content Picture](https://github.com/huijianpzh/segmentation-models/blob/master/simple_style_transfer/data/picasso.jpg)
 #### Result
-[]!()
+![]()
 
-h.j.
+h.j
