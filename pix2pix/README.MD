@@ -7,8 +7,18 @@ The algorithm is Adam with a learning rate of 2e-4 for both discriminator and ge
 
 ### Notice:
 I do not get the result as well as the [project](https://phillipi.github.io/pix2pix/) presents.
-
+I find some may write the codes about rgb2lab and lr_scheduler to adjust the learning rate. I did not do that.
 
 
 ### Results:
 All the pictures are obtained from train datasets. For some reseaon, when I run the model on the test dataset, the result are not so well.
+
+### To be continued:
+I will continue to modify the code.
+Hopefully, it will get a better result.
+
+### References:
+* [Image-to-Image Translation with Conditional Adversarial Nets](https://phillipi.github.io/pix2pix/)
+* [pix2pix(tensorflow version)](https://affinelayer.com/pixsrv/)
+* [CycleGAN and pix2pix in PyTorch](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix)
+* [pix2pixBEGAN.pytorch](https://github.com/taey16/pix2pixBEGAN.pytorch)
