@@ -13,13 +13,18 @@ I find some may write the codes about rgb2lab and lr_scheduler to adjust the lea
 ### Results:
 All the pictures are obtained from train datasets. For some reseaon, when I run the model on the test dataset, the result are not so well.
 
-#### sample_1 (left:label, right:result)
-<div style="float:left;border:solid 1px 000;margin:2px;"><img src="https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/label_sample_1.jpg" ></div>
-<div style="float:left;border:solid 1px 000;margin:2px;"><img src="https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/result_sample_1.jpg"></div>
-
+#### sample_1 (top:label, bottom:result)
+![](https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/label_sample_1.jpg)
+![](https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/result_sample_1.jpg)
 #### sample_2
+![](https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/label_sample_2.jpg)
+![](https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/result_sample_2.jpg)
 #### sample_3
+![](https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/label_sample_3.jpg)
+![](https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/result_sample_3.jpg)
 #### sample_4
+![](https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/label_sample_4.jpg)
+![](https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/result_sample_4.jpg)
 
 ### To be continued:
 I will continue to modify the code.
