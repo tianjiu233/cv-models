@@ -1,4 +1,4 @@
-# This is a implementation of the algorithm pix2pix.(unstable)
+# This is a implementation of the algorithm pix2pix.
 
 ### The details of the implementation.
 The networch architecture used here is the same with the one in the [paper](https://arxiv.org/abs/1611.07004).
@@ -9,6 +9,7 @@ The datasets used is Aerial to Map.
 ### Notice:
 I do not get the result as well as the [project](https://phillipi.github.io/pix2pix/) presents.
 I find some may write the codes about rgb2lab and lr_scheduler to adjust the learning rate. I did not do that.
+The loss of Generator and Discriminator is not stable and did not converge as I see.(It still need some wrok.)
 
 
 ### Results:
