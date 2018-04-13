@@ -13,6 +13,11 @@ I find some may write the codes about rgb2lab and lr_scheduler to adjust the lea
 ### Results:
 All the pictures are obtained from train datasets. For some reseaon, when I run the model on the test dataset, the result are not so well.
 
+#### sample_1 (left:label, right:result)
+<div style="float:left;border:solid 1px 000;margin:2px;"><img src="https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/label_sample_1.jpg" ></div>
+#### sample_2 ()
+<div style="float:left;border:solid 1px 000;margin:2px;"><img src="https://github.com/huijianpzh/segmentation-models/blob/master/pix2pix/result/result_sample_1.jpg"></div>
+
 ### To be continued:
 I will continue to modify the code.
 Hopefully, it will get a better result.
