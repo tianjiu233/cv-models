@@ -9,4 +9,5 @@
 * Win 10
 
 ## Result:
+![](https://github.com/huijianpzh/segmentation-models/blob/master/instance/result_demo.png)
 
