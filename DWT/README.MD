@@ -1,4 +1,4 @@
-# It is an implementation of DWT(Deep Watershed Transform).
+# It is an implementation of DWT(Deep Watershed Transform).(not finished!)
 
 The [Link](https://github.com/min2209/dwt) is the implementation by the author of the paper.
 
