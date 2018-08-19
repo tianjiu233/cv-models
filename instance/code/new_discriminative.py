@@ -122,8 +122,11 @@ def discriminative_loss(input,target,n_objects,max_n_objects,delta_v,delta_d,nor
     # 2.compute the variance term
     var_term = calculate_variance_term(
             pred=input,gt=target,means=cluster_means,n_objects=n_objects, delta_v=delta_v, norm=norm)
-    dist_term = calculate_distance_term(
-            means=cluster_means,n_objects=n_objects,delta_d=delta_d,norm=norm,cuda=cuda,device=device)
+    if n_objects < 2:
+        dist_term = 0
+    else:
+        dist_term = calculate_distance_term(
+                means=cluster_means,n_objects=n_objects,delta_d=delta_d,norm=norm,cuda=cuda,device=device)
     reg_term = calculate_regularization_term(means=cluster_means,n_objects=n_objects,norm=norm)
     
     loss = alpha * var_term + beta * dist_term + gamma * reg_term
