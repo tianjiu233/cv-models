@@ -12,7 +12,7 @@ If you have any question, please contact me.
 * Win 10 / Ubuntu 16.04
 
 ## Result:
-![](https://github.com/huijianpzh/segmentation-models/blob/master/instance/result_demo.png)
+![](https://github.com/tianjiu233/segmentation-models/blob/master/discriminative_loss/result_demo.png)
 
 h.j.
 
