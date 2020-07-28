@@ -6,7 +6,7 @@ Maybe for that the filters have been reduced, it does not perform as well as U-N
 
 (PS: You can build the SegNet model as decribed in the original paper, when you set the parameter ```filter``` as ```[64,128,256,512,512]```. And in this experiment, we use ```segnet = SegNet(input_dim=3, output_dim=1, features=[64,96,128,256,256])```)
 
-The dataset used here is the same as the one in [U-Net](https://github.com/huijianpzh/segmentation-models/edit/master/segmentation_unet/README.md).
+The dataset used here is the same as the one in [UNet](https://github.com/tianjiu233/segmentation-models/tree/master/UNet).
 
 ## Result:
 ![](https://github.com/huijianpzh/segmentation-models/blob/master/segnet/result.png)
