@@ -1,0 +1,1 @@
+This is a repo that will use some tranfer learning method to do the land cover classification.
