@@ -221,7 +221,6 @@ if __name__ == "__main__":
     GIDData_1.show_patch(5)
     sample = GIDData_1[5]
     
-    # 
     data_transform = torchvision.transforms.Compose([Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose(),Add_Mask()])
     GIDData_2 = GID(data_dir,transform=data_transform,mode="fine",nir=False)
     image,new_label,mask = GIDData_2.show_sample(index=5)
