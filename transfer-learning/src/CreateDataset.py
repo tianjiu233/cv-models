@@ -6,9 +6,56 @@ Created on Wed Jul 22 21:57:28 2020
 """
 
 import os
+import random
+
 import numpy as np
 from skimage import io
+import shutil
 
+
+def PartitionDataset(OriginalDataDir,OriginalLabelDir,
+                     TrainDataDir,TrainLabelDir,
+                     ValDataDir,ValLabelDir,
+                     ration = 0.7,
+                     suffix = ".tif"):
+    data = []
+    files = os.listdir(OriginalDataDir)
+    for item in files:
+        if item.endswith(suffix):
+            data.append(item.split(suffix)[0])
+            
+    k = round(ration*len(data))
+    random.shuffle(data)
+    train_data = data[0:k]
+    val_data = data[k:]
+    
+    assert not os.path.exists(TrainDataDir)
+    assert not os.path.exists(TrainLabelDir)
+    os.mkdir(TrainDataDir)
+    os.mkdir(TrainLabelDir)
+    
+    
+    assert not os.path.exists(ValDataDir)
+    assert not os.path.exists(ValLabelDir)
+    os.mkdir(ValDataDir)
+    os.mkdir(ValLabelDir)
+    
+    
+    for item in train_data:
+        data_file = OriginalDataDir + "/" + item + suffix
+        label_file = OriginalLabelDir + "/" + item + "_gt" + ".png"
+        shutil.copy(data_file,TrainDataDir)
+        shutil.copy(label_file,TrainLabelDir)
+    
+    for item in val_data:
+        data_file = OriginalDataDir + "/" + item + suffix
+        label_file = OriginalLabelDir + "/" + item + "_gt" + ".png"
+        shutil.copy(data_file,ValDataDir)
+        shutil.copy(label_file,ValLabelDir)
+        
+    return
+        
+   
 def PatchImage(image,file_name,new_dir,suffix,
                patch_size=[512,512],stride=[256,256]):
     """
@@ -101,6 +148,7 @@ def CreateDataset(OriginalDataDir,OriginalLabelDir,
     
 
 if __name__ == "__main__":
+    """
     PathDir =r"D:/repo/data/GID/"
 
     OriginalDataDir = PathDir + "Fine_land-cover_Classification_15classes/" + "image_RGB"
@@ -110,3 +158,21 @@ if __name__ == "__main__":
     NewLabelDir = OriginalLabelDir + "_Patch"
     
     CreateDataset(OriginalDataDir,OriginalLabelDir,NewDataDir,NewLabelDir,suffix=".tif",patch_size=[1024,1024],stride=[512,512])
+    """
+    
+    PathDir = "D:/GaofenChallenge/automatic_semantic_segmentation/data"
+    
+    OriginalDataDir = PathDir
+    OriginalLabelDir = PathDir
+    
+    TrainDataDir = "D:/GaofenChallenge/TrainData/"
+    TrainLabelDir = "D:/GaofenChallenge/TrainLabel/"
+    
+    ValDataDir = "D:/GaofenChallenge/ValData/"
+    ValLabelDir = "D:/GaofenChallenge/ValLabel/"
+    
+    PartitionDataset(OriginalDataDir,OriginalLabelDir,
+                     TrainDataDir,TrainLabelDir,
+                     ValDataDir,ValLabelDir,
+                     ration = 0.7,
+                     suffix = ".tif")
