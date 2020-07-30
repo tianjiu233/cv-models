@@ -160,16 +160,16 @@ if __name__ == "__main__":
     CreateDataset(OriginalDataDir,OriginalLabelDir,NewDataDir,NewLabelDir,suffix=".tif",patch_size=[1024,1024],stride=[512,512])
     """
     
-    PathDir = "D:/GaofenChallenge/automatic_semantic_segmentation/data"
+    PathDir = "D:/repo/data/GF/data"
     
     OriginalDataDir = PathDir
     OriginalLabelDir = PathDir
     
-    TrainDataDir = "D:/GaofenChallenge/TrainData/"
-    TrainLabelDir = "D:/GaofenChallenge/TrainLabel/"
+    TrainDataDir = "D:/repo/data/GF/TrainData/"
+    TrainLabelDir = "D:/repo/data/GF/TrainLabel/"
     
-    ValDataDir = "D:/GaofenChallenge/ValData/"
-    ValLabelDir = "D:/GaofenChallenge/ValLabel/"
+    ValDataDir = "D:/repo/data/GF/ValData/"
+    ValLabelDir = "D:/repo/data/GF/ValLabel/"
     
     PartitionDataset(OriginalDataDir,OriginalLabelDir,
                      TrainDataDir,TrainLabelDir,
