@@ -178,5 +178,7 @@ if __name__=="__main__":
     GFData_2 = GFChallenge(data_dir,data_transform)
     GFData_2.show_sample(index=100)
     
+    sample = GFData_2[8] 
+    mask = ("mask" in sample.keys())
 
     

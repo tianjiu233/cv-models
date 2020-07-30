@@ -225,5 +225,6 @@ if __name__ == "__main__":
     GIDData_2 = GID(data_dir,transform=data_transform,mode="fine",nir=False)
     image,new_label,mask = GIDData_2.show_sample(index=5)
     
-                
+    sample = GIDData_2[5]
+    mask = ("mask" in sample.keys())
         

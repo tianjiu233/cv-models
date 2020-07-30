@@ -36,6 +36,9 @@ def Trainer(object):
     def _sample(self,sample,mask=False):
         """
         For the limitation of dataset, the mask is required.
+        
+        The speical process will be done when sampling.
+        Only one other process will be done in computing loss
         """
         
         image,label = sample["image"],sample["label"]
@@ -43,8 +46,15 @@ def Trainer(object):
         image =image.to(torch.float32)
         label = label.long()
         
+        if self.cuda:
+            image = image.to(self.device)
+            label = label.to(self.device)
+        
         if mask:
             mask = sample["mask"]
+            if self.cuda:
+                mask= mask.to(self.device)
+                label = label - 1
             return image,label,mask
         else:
             return image,label,None
@@ -69,8 +79,18 @@ def Trainer(object):
     def _loss(self,pred,target,mask=None):
         # pred: (batch,cls_num,height,width) 
         # target: (batch,1,height,width) val:0->cls_num-1
-        if mask is None:
+        
+        if mask is not None:    
             loss = self.ce_loss(pred,target)
+        else:
+            """
+            speical process for target
+            """
+            target[target<0] =0
+            loss = self.ce_loss(pred,target,reduction="none")
+            loss = loss * mask
+            loss = loss.mean()
+            
         return loss
     
     def _compute_info(self,pred,target):
@@ -94,7 +114,6 @@ def Trainer(object):
                                            cls_num = cls_num)
         
         accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = metric.evalue(conf_mat)
-        
         
         return conf_mat,accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa
     
@@ -131,9 +150,12 @@ def Trainer(object):
         if self.cuda:
             self.net = self.net.to(self.device)
         
-        # prepare data
+        # prepare data and check the mask
         self.train_loader = DataLoader(dataset=train_data,batch_size=train_batch,shuffle=True)
         self.val_loader = DataLoader(dataset=val_data,batch_size=val_batch,shuffle=False)
+        
+        # mask
+        self.mask = ("mask" in train_data[0].keys())
         
         # prepare loss functions
         # cross entropy
@@ -150,9 +172,10 @@ def Trainer(object):
         for e in tqdm(enumerate(epochs)):
             for i,sample in enumerate(self.train_loader,0):
                 # train
-                image,label,mask =self._sample(sample)
+                image,label,mask =self._sample(sample,mask=self.mask)
                 pred = self.net(image)
                 # compute loss
+                                
                 loss = self._loss(pred=pred,target=label,mask=mask)
                 loss = loss/loss_accu_interval
                 
