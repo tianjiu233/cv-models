@@ -1,0 +1,12 @@
+Epoch-0: validating-info
+Accuray:0.00000 || Kappa:0.00000
+MIoU:0.00000 || FWIoU:0.00000
+Epoch-0: validating-info
+Accuray:0.12830 || Kappa:0.00000
+MIoU:0.02566 || FWIoU:0.01646
+Epoch-1: validating-info
+Accuray:0.54397 || Kappa:-0.01532
+MIoU:0.11236 || FWIoU:0.31016
+Epoch-2: validating-info
+Accuray:0.44859 || Kappa:0.00898
+MIoU:0.12958 || FWIoU:0.29279

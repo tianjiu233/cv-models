@@ -9,6 +9,8 @@ import torch
 import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
+import torch.nn.functional as F
+
 
 from tqdm import tqdm
 
@@ -19,8 +21,9 @@ import matplotlib.pyplot as plt
 import metric
 
 
-def Trainer(object):
-    def __init__(self,net,
+class Trainer(object):
+    def __init__(self,
+                 net,
                  cuda=False,
                  model_path="../checkpoint/"):
         self.cuda = cuda
@@ -44,6 +47,7 @@ def Trainer(object):
         image,label = sample["image"],sample["label"]
         
         image =image.to(torch.float32)
+        label = label.squeeze(1) # from [b,1,h,w] to [b,h,w]
         label = label.long()
         
         if self.cuda:
@@ -52,9 +56,9 @@ def Trainer(object):
         
         if mask:
             mask = sample["mask"]
+            label = label - 1
             if self.cuda:
                 mask= mask.to(self.device)
-                label = label - 1
             return image,label,mask
         else:
             return image,label,None
@@ -80,14 +84,22 @@ def Trainer(object):
         # pred: (batch,cls_num,height,width) 
         # target: (batch,1,height,width) val:0->cls_num-1
         
-        if mask is not None:    
+        if mask is None:
+            # the usual case
             loss = self.ce_loss(pred,target)
         else:
             """
             speical process for target
             """
             target[target<0] =0
-            loss = self.ce_loss(pred,target,reduction="none")
+            #print(target.size())
+            #print(target.max())
+            #print(target.min())
+            #print(pred.size())
+            loss = F.cross_entropy(pred,target,reduction="none")
+            #print(loss.size())
+            mask = mask.squeeze(1)
+            #print(mask.size())
             loss = loss * mask
             loss = loss.mean()
             
@@ -120,8 +132,12 @@ def Trainer(object):
     def validate(self,val_data_loader):
         self.net.eval()
         total_conf_mat = 0
-        for i,sample in enumerate(self.val_loader,0):
-            image,label = self._sample(sample)
+        for i,sample in tqdm(enumerate(self.val_loader,0)):
+            # --------------------------
+            if i == 100:
+                break
+            # --------------------------
+            image,label,mask = self._sample(sample)
             with torch.no_grad():
                 pred = self.net(image)
                 
@@ -134,7 +150,9 @@ def Trainer(object):
                                                target=new_target.flatten(),
                                                cls_num = cls_num)
             total_conf_mat += conf_mat
-        
+            # -----------------------
+            print(conf_mat)
+            # -----------------------
         # compute the final evaluation
         accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = metric.evalue(total_conf_mat)
             
@@ -168,8 +186,26 @@ def Trainer(object):
         self.optimizer.zero_grad()
         loss = 0
         
+        # --------------------------------------
+        e = -1
+        self.net.eval()
+        accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = self.validate(val_data_loader = self.val_loader)
+        print("Epoch-{}: validating-info".format(e+1)) 
+        print("Accuray:{:.5f} || Kappa:{:.5f}".format(accu,kappa))
+        print("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
+        with open("train-info.txt","a") as file_handle:
+            file_handle.write("Epoch-{}: validating-info".format(e+1))
+            file_handle.write('\n')
+            file_handle.write("Accuray:{:.5f} || Kappa:{:.5f}".format(accu,kappa))
+            file_handle.write('\n')
+            file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
+            file_handle.write('\n')
+        model_name = model_name + "_" + str(e+1) + ".pkl"
+        # --------------------------------------------
+        
+        
         self.net.train()
-        for e in tqdm(enumerate(epochs)):
+        for e in tqdm(range(epochs)):
             for i,sample in enumerate(self.train_loader,0):
                 # train
                 image,label,mask =self._sample(sample,mask=self.mask)
@@ -189,7 +225,9 @@ def Trainer(object):
                     print("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
                     with open("train-info.txt","a") as file_handle:
                         file_handle.write("Epoch-{} Iteration-{}: training-info".format(e+1,i+1))
+                        file_handle.write('\n')
                         file_handle.write("Accuray:{:.5f} || Kappa:{:.5f}".format(accu,kappa))
+                        file_handle.write('\n')
                         file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
                         file_handle.write('\n')
             
@@ -201,7 +239,9 @@ def Trainer(object):
                 print("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
                 with open("train-info.txt","a") as file_handle:
                     file_handle.write("Epoch-{}: validating-info".format(e+1))
+                    file_handle.write('\n')
                     file_handle.write("Accuray:{:.5f} || Kappa:{:.5f}".format(accu,kappa))
+                    file_handle.write('\n')
                     file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
                     file_handle.write('\n')
                 model_name = model_name + "_" + str(e+1) + ".pkl"

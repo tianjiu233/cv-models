@@ -14,7 +14,7 @@ class Add_Mask(object):
     """
     def __call__(self,sample):
         image,label = sample["image"],sample["label"]
-        mask = np.zeros(shape=label.shape)
+        mask = np.zeros(shape=label.shape,dtype=np.float32)
         
         mask[label>0.5] = 1
         #print(mask.shape)

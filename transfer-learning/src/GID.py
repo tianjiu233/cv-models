@@ -18,7 +18,7 @@ import torchvision
 from torch.utils.data import Dataset,DataLoader
 
 # mylibs
-from data_util import Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug,Add_Mask
+from data_util import Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug,Add_Mask,RandomCrop
 
 # [0,0,0] no-data
 colormap_5 = [[0,0,0],
@@ -99,7 +99,7 @@ class GID(Dataset):
             mode_dir = "Fine_land-cover_Classification_15classes" 
             label_dir = "label_15classes"
             self.colormap = colormap_15
-        else:
+        elif mode == "coarse":
             mode_dir = "Large-scale_Classification_5classes"
             label_dir = "label_5classes"
             self.colormap = colormap_5
@@ -136,8 +136,9 @@ class GID(Dataset):
         
         # print(label.shape)
         
+        # change to float
         sample = {}
-        sample["image"] = image
+        sample["image"] = image.astype(np.float32)
         sample["label"] = label.astype(np.float32)
         
         
@@ -214,17 +215,28 @@ class GID(Dataset):
 if __name__ == "__main__":
     
     data_dir = r"D:/repo/data/GID"
-    mode = "fine"
-    
+    mode = "coarse"
+    nir = False
+    """
     data_transform = None
     GIDData_1 = GID(data_dir,transform = data_transform,mode="fine",nir=False)
     GIDData_1.show_patch(5)
     sample = GIDData_1[5]
-    
-    data_transform = torchvision.transforms.Compose([Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose(),Add_Mask()])
-    GIDData_2 = GID(data_dir,transform=data_transform,mode="fine",nir=False)
+    """
+    data_transform = torchvision.transforms.Compose([RandomCrop(512),Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose(),Add_Mask()])
+    GIDData_2 = GID(data_dir,transform=data_transform,mode=mode,nir=nir)
     image,new_label,mask = GIDData_2.show_sample(index=5)
     
     sample = GIDData_2[5]
     mask = ("mask" in sample.keys())
+    
+    
+    GID_Dataloader = DataLoader(dataset=GIDData_2,batch_size=4,shuffle=True)
+    
+    for i,sample in enumerate(GID_Dataloader,0):
+        print(sample["image"].shape)
+        print(sample["label"].shape)
+        print(sample["mask"].shape)
+        if i == 10:
+            break
         
