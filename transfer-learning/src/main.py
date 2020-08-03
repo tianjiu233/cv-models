@@ -58,7 +58,7 @@ if __name__=="__main__":
     loss_accu_interval = 1
     val_interval=1
     
-    train_model = True
+    train_model = False
     if train_model:
         trainer.train_model(train_data,val_data,
                             train_batch,val_batch,
@@ -101,7 +101,7 @@ if __name__=="__main__":
     loss_accu_interval = 1
     val_interval = 1
     
-    train_model = False
+    train_model = True
     if train_model:
         trainer.train_model(train_data,val_data,
                             train_batch,val_batch,

@@ -151,7 +151,9 @@ class Trainer(object):
                                                cls_num = cls_num)
             total_conf_mat += conf_mat
             # -----------------------
+            print("\n")
             print(conf_mat)
+            print("\n")
             # -----------------------
         # compute the final evaluation
         accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = metric.evalue(total_conf_mat)
@@ -200,7 +202,7 @@ class Trainer(object):
             file_handle.write('\n')
             file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
             file_handle.write('\n')
-        model_name = model_name + "_" + str(e+1) + ".pkl"
+        sava_model_name = model_name + "_" + str(e+1) + ".pkl"
         # --------------------------------------------
         
         
@@ -244,7 +246,7 @@ class Trainer(object):
                     file_handle.write('\n')
                     file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
                     file_handle.write('\n')
-                model_name = model_name + "_" + str(e+1) + ".pkl"
+                sava_model_name = model_name + "_" + str(e+1) + ".pkl"
                 self.save_model(model_name)
                 
             
