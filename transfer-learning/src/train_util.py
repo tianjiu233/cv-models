@@ -44,7 +44,7 @@ def weights_init(m):
         if m.bias is not None:
             fan_in, _ = init._calculate_fan_in_and_fan_out(m.weight)
             bound = 1/math.sqrt(fan_in)
-            init.uniform(m.bias,-bound,bound)
+            init.uniform_(m.bias,-bound,bound)
         
 if __name__=="__main__":
     

@@ -19,7 +19,6 @@ import matplotlib.pyplot as plt
 # my libs
 import metric
 
-
 class Trainer(object):
     def __init__(self,
                  net,

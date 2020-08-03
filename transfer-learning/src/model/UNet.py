@@ -108,13 +108,12 @@ class Improved_UNet(nn.Module):
                                      BN_UPCONV_RELU(in_chs=feats[0], out_chs=feats[0]))
         # upconv5
         self.upconv5 = nn.Sequential(BN_CONV_RELU(in_chs=2*feats[0], out_chs=feats[1]),
-                                     BN_CONV_RELU(in_chs=feats[1], out_chs=feats[0]),
-                                     nn.Conv2d(in_channels=feats[0], out_channels=cls_num, 
-                                                   kernel_size=1,
-                                                   stride=1,padding=0))
+                                     BN_CONV_RELU(in_chs=feats[1], out_chs=feats[0]),)
+                                     
         
-        # final_layer
-        # self.final_layer = nn.Sequential(nn.Softmax2d())
+        self.classifier = nn.Conv2d(in_channels=feats[0], 
+                                    out_channels=cls_num, 
+                                    kernel_size=1,stride=1,padding=0)
         
         
     def forward(self,input_tensor):
@@ -174,9 +173,9 @@ class Improved_UNet(nn.Module):
         
         tmp = feat_maps.pop()
         x = torch.cat((x,tmp),1)
-        output_tensor = self.upconv5(x)
+        x = self.upconv5(x)
         
-        #output_tensor = self.final_layer(output_tensor)
+        output_tensor = self.classifier(x)
         
         return output_tensor
     

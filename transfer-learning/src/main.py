@@ -17,7 +17,7 @@ from data_util import RandomCrop,Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug
 from GID import GID
 from GFChallenge import GFChallenge
 from trainer import Trainer
-
+import train_util
 
 if __name__=="__main__":
 
@@ -44,8 +44,10 @@ if __name__=="__main__":
     
     # define the model
     cls_num=5 # "no-data" are not included.
-    net = ResNet34UNet(in_chs=in_chs,cls_num=cls_num)
+    # net = ResNet34UNet(in_chs=in_chs,cls_num=cls_num)
+    net = Improved_UNet(in_chs=in_chs,cls_num=cls_num)
     
+    net.apply(train_util.weights_init)
     trainer = Trainer(net,cuda=cuda,model_path=model_path)
     
     model_name = "pre-train"
@@ -82,10 +84,12 @@ if __name__=="__main__":
     # load the target data
     # train
     data_dir = r"D:\repo\data\GF\Train"
+    # data_dir = "/cetc/nas_remote_sensing/huijian/GF/Train"
     data_transform = torchvision.transforms.Compose([Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose()])
     GFData_Train = GFChallenge(data_dir,data_transform)
     # val 
     data_dir = r"D:\repo\data\GF\Val"
+    # data_dir = "/cetc/nas_remote_sensing/huijian/GF/Val"
     data_transform = torchvision.transforms.Compose([Nptranspose()])
     GFData_Val = GFChallenge(data_dir,data_transform)
     
