@@ -4,8 +4,9 @@ Created on Wed Jul 29 13:42:52 2020
 
 @author: huijianpzh
 """
-
+import os
 import numpy as np
+
 import torch
 import torchvision
 import torch.nn as nn
@@ -18,6 +19,12 @@ from GID import GID
 from GFChallenge import GFChallenge
 from trainer import Trainer
 import train_util
+
+
+
+
+os.environ["CUDA_VISIBLE_DEVICE"] = "3"
+torch.cuda.set_device(3)
 
 if __name__=="__main__":
 
