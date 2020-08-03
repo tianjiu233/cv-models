@@ -4,16 +4,15 @@ Created on Thu Jul 30 14:13:39 2020
 
 @author: huijianpzh
 """
-
+# torch libs
 import torch
 import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
-
+# other official libs
 from tqdm import tqdm
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -26,10 +25,10 @@ class Trainer(object):
                  net,
                  cuda=False,
                  model_path="../checkpoint/"):
+        self.net = net
+        
         self.cuda = cuda
         self.model_path = model_path
-        
-        self.net = net
         
         if self.cuda:
             self.device = torch.device("cuda")
@@ -84,7 +83,7 @@ class Trainer(object):
         # pred: (batch,cls_num,height,width) 
         # target: (batch,1,height,width) val:0->cls_num-1
         
-        if mask is None:
+        if self.mask is False:
             # the usual case
             loss = self.ce_loss(pred,target)
         else:
@@ -93,14 +92,14 @@ class Trainer(object):
             """
             target[target<0] =0
             #print(target.size())
+            #print(pred.size())
             #print(target.max())
             #print(target.min())
-            #print(pred.size())
             loss = F.cross_entropy(pred,target,reduction="none")
-            #print(loss.size())
             mask = mask.squeeze(1)
+            #print(loss.size())
             #print(mask.size())
-            loss = loss * mask
+            loss = loss*mask
             loss = loss.mean()
             
         return loss
@@ -174,21 +173,19 @@ class Trainer(object):
         self.train_loader = DataLoader(dataset=train_data,batch_size=train_batch,shuffle=True)
         self.val_loader = DataLoader(dataset=val_data,batch_size=val_batch,shuffle=False)
         
-        # mask
+        # to check wether the trainer need a mask
         self.mask = ("mask" in train_data[0].keys())
         
         # prepare loss functions
         # cross entropy
         self.ce_loss = nn.CrossEntropyLoss(weight=None,reduction="mean")
-        
         # prepare the optimizer and its strategies
         self.optimizer = optim.Adam(params=self.net.parameters(),lr=1.3e-2,betas=(0.5,0.99))
+        # self.optimizer = optim.SGD(params=self.net.parameters(),lr=1e-2)
         
-        # optimizer initial
-        self.optimizer.zero_grad()
-        loss = 0
-        
+        """
         # --------------------------------------
+        # check the result at the first time
         e = -1
         self.net.eval()
         accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = self.validate(val_data_loader = self.val_loader)
@@ -202,10 +199,16 @@ class Trainer(object):
             file_handle.write('\n')
             file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
             file_handle.write('\n')
-        sava_model_name = model_name + "_" + str(e+1) + ".pkl"
         # --------------------------------------------
+        """
         
+        if self.mask:
+            print("There is invalid data in the dataset!")
         
+        # optimizer initial
+        self.optimizer.zero_grad()
+        loss = 0
+        count = 0
         self.net.train()
         for e in tqdm(range(epochs)):
             for i,sample in enumerate(self.train_loader,0):
@@ -213,11 +216,14 @@ class Trainer(object):
                 image,label,mask =self._sample(sample,mask=self.mask)
                 pred = self.net(image)
                 # compute loss
-                                
-                loss = self._loss(pred=pred,target=label,mask=mask)
+                loss =self._loss(pred=pred,target=label,mask=mask)
                 loss = loss/loss_accu_interval
-                
                 loss.backward()
+                
+                if ((i+1)%loss_accu_interval==0) or ((i+1)==len(self.train_loader)):
+                    self.optimizer.step()
+                    self.optimizer.zero_grad()
+                    
                 
                 if (i+1)%(val_interval*100) == 0:
                     # every epoch, print the info of the certain batch
@@ -247,7 +253,7 @@ class Trainer(object):
                     file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
                     file_handle.write('\n')
                 sava_model_name = model_name + "_" + str(e+1) + ".pkl"
-                self.save_model(model_name)
+                self.save_model(sava_model_name)
                 
             
         

@@ -104,8 +104,8 @@ class GFChallenge(Dataset):
         # print(self.data[index])
         
         sample = {}
-        sample["image"] = image
-        sample["label"] = label
+        sample["image"] = image.astype(np.float32)
+        sample["label"] = label.astype(np.float32)
         
         if self.transform is not None:
             sample = self.transform(sample)

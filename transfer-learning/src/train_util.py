@@ -15,6 +15,7 @@ The codes are borrowed from
 
 import torchvision
 import torch
+import torch.optim as optim
 import torch.nn as nn
 import torch.nn.init as init
 
@@ -46,5 +47,36 @@ def weights_init(m):
             init.uniform(m.bias,-bound,bound)
         
 if __name__=="__main__":
-    resnet18 = torchvision.models.resnet18(pretrained = False)
-    resnet18.apply(weights_init)
+    
+    # init methods 
+    model = torchvision.models.resnet18(pretrained = False)
+    model.apply(weights_init)
+    
+    # (1) fintune with the layer weights frozen
+    for param in model.parameters():
+        param.requires_grad = False
+    
+    model.fc = nn.Linear(512,10)
+    optimizer = optim.SGD(model.fc.parameters(),lr=1e-2,momentum=0.9)
+    # (2) fintune without the layer weights frozen
+    # optimizing the parameters with different lr rate
+    model.fc = nn.Linear(512,10)
+    
+    ignored_params = list(map(id,model.fc.parameters()))
+    base_params = filter(lambda p: id(p) not in ignored_params, model.parameters())
+    
+    # different layer with different lr rate
+    params_list = [
+        {"params":base_params,"lr":0.001},
+        ]
+    params_list.append(
+        {"params":model.fc.parameters(),"lr":0.01}
+        )
+    
+    optimizer = optim.SGD(params_list,
+                          0.001)
+    
+    
+    
+    
+    

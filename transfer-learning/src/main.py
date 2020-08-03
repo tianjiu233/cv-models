@@ -11,6 +11,7 @@ import torchvision
 import torch.nn as nn
 
 from model.ResNetModel import ResNet34UNet
+from model.UNet import Improved_UNet
 
 from data_util import RandomCrop,Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug,Add_Mask
 from GID import GID
@@ -31,11 +32,13 @@ if __name__=="__main__":
     nir = False # in_chs will be 3
     # train
     data_dir = r"D:/repo/data/customized_GID/Train"
-    data_transform = torchvision.transforms.Compose([RandomCrop(512),Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose(),Add_Mask()])
+    data_transform = torchvision.transforms.Compose([RandomCrop(512),Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose(),
+                                                     Add_Mask()])
     train_data = GID(data_dir,transform=data_transform,mode=mode,nir=nir)
     # val
     data_dir = r"D:/repo/data/customized_GID/Val"
-    data_transform = torchvision.transforms.Compose([Nptranspose(),Add_Mask()])
+    data_transform = torchvision.transforms.Compose([Nptranspose(),
+                                                     Add_Mask()])
     val_data = GID(data_dir,transform=data_transform,mode=mode,nir=nir)
     
     
@@ -71,11 +74,10 @@ if __name__=="__main__":
     
     # Real Data
     # change the model(the special step for transfer-learning)
-    # replace the net.classifer with a new one
-    cls_num = 9
-    trainer.net.classifer = torch.nn.Sequential(nn.Conv2d(in_channels=64, out_channels=cls_num, 
-                                                          kernel_size=1,stride=1,padding=0,bias=True),
-                                                )
+    # replace the net.classifer with a new onenew_
+    new_cls_num = 9
+    trainer.net.classifier =nn.Conv2d(in_channels=64, out_channels=new_cls_num, kernel_size=1,stride=1,padding=0,bias=True)
+                                                
     
     # load the target data
     # train
@@ -85,7 +87,7 @@ if __name__=="__main__":
     # val 
     data_dir = r"D:\repo\data\GF\Val"
     data_transform = torchvision.transforms.Compose([Nptranspose()])
-    GFData_Train = GFChallenge(data_dir,data_transform)
+    GFData_Val = GFChallenge(data_dir,data_transform)
     
     
     model_name = "seg"
@@ -98,12 +100,12 @@ if __name__=="__main__":
     epochs=int(1e6)
     train_batch=4
     val_batch=10
-    loss_accu_interval = 1
+    loss_accu_interval = 2
     val_interval = 1
     
     train_model = True
     if train_model:
-        trainer.train_model(train_data,val_data,
+        trainer.train_model(GFData_Train,GFData_Val,
                             train_batch,val_batch,
                             epochs=epochs,
                             loss_accu_interval=loss_accu_interval,
