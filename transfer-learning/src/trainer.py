@@ -151,9 +151,9 @@ class Trainer(object):
                                                cls_num = cls_num)
             total_conf_mat += conf_mat
             # -----------------------
-            print("\n")
-            print(conf_mat)
-            print("\n")
+            #print("\n")
+            #print(conf_mat)
+            #print("\n")
             # -----------------------
         # compute the final evaluation
         accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = metric.evalue(total_conf_mat)

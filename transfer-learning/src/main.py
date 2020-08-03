@@ -96,7 +96,7 @@ if __name__=="__main__":
     
     # parameters for train
     epochs=int(1e6)
-    train_batch=16
+    train_batch=4
     val_batch=10
     loss_accu_interval = 1
     val_interval = 1
