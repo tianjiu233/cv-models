@@ -192,6 +192,8 @@ class ResNet_coach_vae(nn.Module):
         if not self.training:
             mask = (mask>0.5).float()
         
+        # this help the coach net get the mask of the same size as the input_tensor
+        # get the mask and then upsample
         mask = self.upsample(mask)
         
         return mask,mu,logvar
