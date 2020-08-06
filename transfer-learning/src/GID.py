@@ -127,20 +127,30 @@ class GID(Dataset):
         image =self.image_dir + "/" + self.data[index] + ".tif"
         label = self.label_dir + "/" + self.data[index] + "_label.tif"
         
-        image = io.imread(image) # [height,width,3 or 4] uint8
-        image = image*1./255 
+        image = io.imread(image) # [height,width,3 or 4] uint8 [0-255]
+        #print(image.shape)
+        #print(image.dtype)
+        #print(np.unique(image))
+        image = image.astype(np.float32)*1./255 
         label = io.imread(label) # [heitgh,width,3] another process will be done
         
-        label = color2label(color_img=label, lut=self.lut) # [height,width]
-        label = label[...,np.newaxis]
+        label = color2label(color_img=label, lut=self.lut) # [height,width]  [0,k-1]
+        label = label[...,np.newaxis] # [height,width,1]
         
         # print(label.shape)
         
         # change to float
         sample = {}
-        sample["image"] = image.astype(np.float32)
-        sample["label"] = label.astype(np.float32)
-        
+        image = image.astype(np.float32)
+        label = label.astype(np.float32)
+        sample["image"] = image  # [height,width,3] [0,1] np.float32
+        sample["label"] = label  # [height,width,1] [0,k-1] np.float32
+        #print(image.dtype)
+        #print(image.shape)
+        #print(np.unique(image))
+        #print(label.dtype)
+        #print(label.shape)
+        #print(np.unique(label))
         
         if self.transform is not None:
             sample = self.transform(sample)
@@ -199,7 +209,6 @@ class GID(Dataset):
         fig,axs = plt.subplots(1,3)
         
         # print(image.shape)
-        
         axs[0].imshow(image)
         axs[0].axis("off")
         axs[1].imshow(new_label)
@@ -217,12 +226,14 @@ if __name__ == "__main__":
     data_dir = r"D:/repo/data/GID"
     mode = "coarse"
     nir = False
+    
     """
     data_transform = None
     GIDData_1 = GID(data_dir,transform = data_transform,mode="fine",nir=False)
     GIDData_1.show_patch(5)
     sample = GIDData_1[5]
     """
+    
     data_transform = torchvision.transforms.Compose([RandomCrop(512),Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose(),Add_Mask()])
     GIDData_2 = GID(data_dir,transform=data_transform,mode=mode,nir=nir)
     image,new_label,mask = GIDData_2.show_sample(index=5)
@@ -231,12 +242,12 @@ if __name__ == "__main__":
     mask = ("mask" in sample.keys())
     
     
+    """
     GID_Dataloader = DataLoader(dataset=GIDData_2,batch_size=4,shuffle=True)
-    
     for i,sample in enumerate(GID_Dataloader,0):
         print(sample["image"].shape)
         print(sample["label"].shape)
         print(sample["mask"].shape)
         if i == 10:
             break
-        
+      """  

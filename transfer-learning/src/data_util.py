@@ -80,8 +80,14 @@ class Rotation(object):
         if multi>0.001:
             #print("do rotation")
             # transform.rotate will change the range of the value
+            #print(image.max())
+            #print(image.min())
+            #print(np.unique(label))
             image = transform.rotate(image,self.angle*multi).astype(np.float32)
             label = transform.rotate(label,self.angle*multi).astype(np.float32)
+            #print(image.max())
+            #print(image.min())
+            #print(np.unique(label))
             sample["image"] = image
             sample["label"] = label
             #print(np.unique(label))

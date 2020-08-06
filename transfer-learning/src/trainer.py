@@ -84,7 +84,8 @@ class Trainer(object):
         
         if self.mask is False:
             # the usual case
-            loss = self.ce_loss(pred,target)
+            loss = self.ce_loss(pred,target) + self.focal_loss(pred,target)
+        
         else:
             """
             speical process for target
@@ -95,10 +96,15 @@ class Trainer(object):
             #print(target.max())
             #print(target.min())
             loss = F.cross_entropy(pred,target,reduction="none")
+            print(loss)
+            print(loss.size())
+            print(mask.size())
             mask = mask.squeeze(1)
+            print(mask.size())
             #print(loss.size())
             #print(mask.size())
             loss = loss*mask
+            print(loss)
             loss = loss.mean()
             
         return loss
@@ -132,8 +138,8 @@ class Trainer(object):
         total_conf_mat = 0
         for i,sample in tqdm(enumerate(self.val_loader,0)):
             # --------------------------
-            if i == 100:
-                break
+            #if i == 100:
+            #    break
             # --------------------------
             image,label,mask = self._sample(sample)
             with torch.no_grad():
@@ -163,7 +169,8 @@ class Trainer(object):
                     train_batch,val_batch,
                     epochs=int(1e6),
                     loss_accu_interval=1,val_interval=16,
-                    model_name="seg"):
+                    model_name="seg",
+                    optim_mode="Adadelta"):
         
         if self.cuda:
             self.net = self.net.to(self.device)
@@ -178,9 +185,15 @@ class Trainer(object):
         # prepare loss functions
         # cross entropy
         self.ce_loss = nn.CrossEntropyLoss(weight=None,reduction="mean")
+        # this is only for GF data
+        self.focal_loss = metric.FocalLoss(alpha=[1,1,1,1,1,1,1,1,1],gamma=2,size_average=True)
         # prepare the optimizer and its strategies
-        self.optimizer = optim.Adam(params=self.net.parameters(),lr=1.3e-2,betas=(0.5,0.99))
-        # self.optimizer = optim.SGD(params=self.net.parameters(),lr=1e-2)
+        if optim_mode == "Adam":
+            self.optimizer = optim.Adam(params=self.net.parameters(),lr=1.3e-2,betas=(0.5,0.99))
+        elif optim_mode == "Adadelta":
+            self.optimizer = optim.Adadelta(params=self.net.parameters(),lr=0.1,weight_decay=0.0001)
+        else:
+            self.optimizer = optim.SGD(params=self.net.parameters(),lr=1e-2)
         
         """
         # --------------------------------------

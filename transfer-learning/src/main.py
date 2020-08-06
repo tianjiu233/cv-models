@@ -20,11 +20,8 @@ from GFChallenge import GFChallenge
 from trainer import Trainer
 import train_util
 
-
-
-
 os.environ["CUDA_VISIBLE_DEVICE"] = "3"
-torch.cuda.set_device(3)
+#torch.cuda.set_device(3)
 
 if __name__=="__main__":
 
@@ -40,17 +37,17 @@ if __name__=="__main__":
     # train
     data_dir = r"D:/repo/data/customized_GID/Train"
     data_transform = torchvision.transforms.Compose([RandomCrop(512),Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose(),
-                                                     Add_Mask()])
+                                                    ])# Add_Mask()])
     train_data = GID(data_dir,transform=data_transform,mode=mode,nir=nir)
     # val
     data_dir = r"D:/repo/data/customized_GID/Val"
     data_transform = torchvision.transforms.Compose([Nptranspose(),
-                                                     Add_Mask()])
+                                                     ])#Add_Mask()])
     val_data = GID(data_dir,transform=data_transform,mode=mode,nir=nir)
     
     
     # define the model
-    cls_num=5 # "no-data" are not included.
+    cls_num=6 # "no-data" are not included.
     # net = ResNet34UNet(in_chs=in_chs,cls_num=cls_num)
     net = Improved_UNet(in_chs=in_chs,cls_num=cls_num)
     
