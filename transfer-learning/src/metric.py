@@ -13,67 +13,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 """
-https://www.jianshu.com/p/30043bcc90b6
-https://blog.csdn.net/zziahgf/article/details/83589973
-"""
-class FocalLoss(nn.Module):
-    def __init__(self,alpha=0.25,gamma=2,size_average=True):
-        super(FocalLoss,self).__init__()
-        self.alpha = alpha
-        self.gamma = gamma
-        self.size_average = True
-        
-        if isinstance(alpha,(float,int)):
-            # binary
-            if self.alpha>1:
-                raise ValueError("Not supported value, alpha should be smaller than 1.0")
-            else:
-                self.alpha = torch.Tensor([alpha,1-alpha])
-        elif isinstance(alpha,list):
-            self.alpha = torch.Tensor(alpha)
-        self.alpha /= torch.sum(self.alpha)
-        
-    def forward(self,pred,target):
-        """
-        pred:[b,c,h,w] 
-        target:[b,1,h,w] range:[0,k-1]
-        """
-        print("Here")
-        if pred.dim() > 2:
-            # [b,c,h,w] ->[b,c,h*w]
-            pred = F.softmax(pred,dim=1)
-            pred = pred.view(pred.size(0),pred.size(1),-1)
-        # [b,1,h,w] -> [b*h*w,1]
-        target = target.view(-1,1) 
-        
-        if self.alpha.device != pred.device:
-            self.alpha = self.alpha.to(pred.device)
-        
-        # log_p = [b,c,h*w]
-        log_p  = torch.log(pred + 1e-10)
-        # torch.gather(input = log_p, dim = 1, index = target)
-        log_p = log_p.gather(1,target)
-        log_p = log_p.view(-1,1)
-        
-        probs = torch.exp(log_p)
-        
-        alpha = self.alpha.gather(0,target.view(-1))
-        
-        if not self.gamma.device == pred.device:
-            gamma = self.gamma.to(pred.device)
-        
-        loss = -1*alpha*torch.pow((1-probs),gamma) * log_p
-        
-        if self.size_average:
-            loss = loss.mean()
-        else:
-            loss = loss.sum()
-        
-        return loss
-
-
-
-"""
 https://github.com/milleniums/High-Resolution-Remote-Sensing-Semantic-Segmentation-PyTorch
 https://github.com/CSAILVision/semantic-segmentation-pytorch/blob/master/mit_semseg/utils.py
 Computes and stores the average and current value.

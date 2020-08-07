@@ -122,9 +122,6 @@ class GFChallenge(Dataset):
         label = label[...,0]
         
         label = label.astype(np.uint8)
-        #print(label.dtype)
-        #print(label.shape)
-        #print(label)
         new_label = self.colormap[label]
         
         fig,axs = plt.subplots(1,2)

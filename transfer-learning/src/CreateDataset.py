@@ -12,6 +12,9 @@ import numpy as np
 from skimage import io
 import shutil
 
+"""
+Both fcn should be modifed according to the requirements of the certain case.
+"""
 
 def PartitionDataset(OriginalDataDir,OriginalLabelDir,
                      TrainDataDir,TrainLabelDir,
@@ -148,7 +151,8 @@ def CreateDataset(OriginalDataDir,OriginalLabelDir,
     
 
 if __name__ == "__main__":
-    """
+    
+    # (1) test CreateDataset
     PathDir =r"D:/repo/data/GID/"
 
     OriginalDataDir = PathDir + "Fine_land-cover_Classification_15classes/" + "image_RGB"
@@ -158,8 +162,8 @@ if __name__ == "__main__":
     NewLabelDir = OriginalLabelDir + "_Patch"
     
     CreateDataset(OriginalDataDir,OriginalLabelDir,NewDataDir,NewLabelDir,suffix=".tif",patch_size=[1024,1024],stride=[512,512])
-    """
     
+    # (2) test PartitionDataset
     PathDir = "D:/repo/data/GF/data"
     
     OriginalDataDir = PathDir

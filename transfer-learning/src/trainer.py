@@ -18,8 +18,11 @@ import matplotlib.pyplot as plt
 
 # my libs
 import metric
+from loss.focalloss import FocalLoss
+import loss.lovasz_losses as L
 
 class Trainer(object):
+    
     def __init__(self,
                  net,
                  cuda=False,
@@ -45,21 +48,24 @@ class Trainer(object):
         image,label = sample["image"],sample["label"]
         
         image =image.to(torch.float32)
-        label = label.squeeze(1) # from [b,1,h,w] to [b,h,w]
+        # from [b,1,h,w] to [b,h,w], 
+        # usually the official loss fcn requires the format of [N,d1,d2...]
+        label = label.squeeze(1) 
         label = label.long()
         
         if self.cuda:
             image = image.to(self.device)
             label = label.to(self.device)
         
-        if mask:
+        if mask is True:
+            # process the mask and label
             mask = sample["mask"]
             label = label - 1
             if self.cuda:
                 mask= mask.to(self.device)
             return image,label,mask
-        else:
-            return image,label,None
+
+        return image,label,None
     
     def save_model(self,model_name="seg.pkl"):
         if self.cuda:
@@ -80,31 +86,25 @@ class Trainer(object):
     
     def _loss(self,pred,target,mask=None):
         # pred: (batch,cls_num,height,width) 
-        # target: (batch,1,height,width) val:0->cls_num-1
+        # target: (batch,height,width) val:0->cls_num-1
         
         if self.mask is False:
-            # the usual case
-            loss = self.ce_loss(pred,target) + self.focal_loss(pred,target)
-        
+            # no mask case
+            # ce loss
+            ce_loss = self.ce_loss(pred,target)
+            # Lovász loss
+            l_loss = L.lovasz_softmax(probas=F.softmax(pred,dim=1),labels=target)
+            
+            loss = ce_loss + l_loss
+            
         else:
             """
             speical process for target
             """
             target[target<0] =0
-            #print(target.size())
-            #print(pred.size())
-            #print(target.max())
-            #print(target.min())
             loss = F.cross_entropy(pred,target,reduction="none")
-            print(loss)
-            print(loss.size())
-            print(mask.size())
             mask = mask.squeeze(1)
-            print(mask.size())
-            #print(loss.size())
-            #print(mask.size())
             loss = loss*mask
-            print(loss)
             loss = loss.mean()
             
         return loss
@@ -134,14 +134,14 @@ class Trainer(object):
         return conf_mat,accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa
     
     def validate(self,val_data_loader):
+        # change state
         self.net.eval()
+        
         total_conf_mat = 0
         for i,sample in tqdm(enumerate(self.val_loader,0)):
-            # --------------------------
-            #if i == 100:
-            #    break
-            # --------------------------
+            # sample
             image,label,mask = self._sample(sample)
+            
             with torch.no_grad():
                 pred = self.net(image)
                 
@@ -161,7 +161,7 @@ class Trainer(object):
             # -----------------------
         # compute the final evaluation
         accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = metric.evalue(total_conf_mat)
-            
+        # change state back
         self.net.train()
         return accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa
     
@@ -185,8 +185,11 @@ class Trainer(object):
         # prepare loss functions
         # cross entropy
         self.ce_loss = nn.CrossEntropyLoss(weight=None,reduction="mean")
-        # this is only for GF data
-        self.focal_loss = metric.FocalLoss(alpha=[1,1,1,1,1,1,1,1,1],gamma=2,size_average=True)
+        # focal loss
+        alpha = [1,1,1,1,1,1,1,1,1]
+        gamma = 2
+        self.focal_loss = FocalLoss(alpha,gamma,reduction="mean")
+        
         # prepare the optimizer and its strategies
         if optim_mode == "Adam":
             self.optimizer = optim.Adam(params=self.net.parameters(),lr=1.3e-2,betas=(0.5,0.99))
@@ -195,33 +198,15 @@ class Trainer(object):
         else:
             self.optimizer = optim.SGD(params=self.net.parameters(),lr=1e-2)
         
-        """
-        # --------------------------------------
-        # check the result at the first time
-        e = -1
-        self.net.eval()
-        accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = self.validate(val_data_loader = self.val_loader)
-        print("Epoch-{}: validating-info".format(e+1)) 
-        print("Accuray:{:.5f} || Kappa:{:.5f}".format(accu,kappa))
-        print("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
-        with open("train-info.txt","a") as file_handle:
-            file_handle.write("Epoch-{}: validating-info".format(e+1))
-            file_handle.write('\n')
-            file_handle.write("Accuray:{:.5f} || Kappa:{:.5f}".format(accu,kappa))
-            file_handle.write('\n')
-            file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
-            file_handle.write('\n')
-        # --------------------------------------------
-        """
-        
         if self.mask:
             print("There is invalid data in the dataset!")
         
-        # optimizer initial
+        # optimizer and loss initial
         self.optimizer.zero_grad()
         loss = 0
-        count = 0
         self.net.train()
+        
+        # train
         for e in tqdm(range(epochs)):
             for i,sample in enumerate(self.train_loader,0):
                 # train
@@ -237,7 +222,7 @@ class Trainer(object):
                     self.optimizer.zero_grad()
                     
                 
-                if (i+1)%(val_interval*100) == 0:
+                if (i+1)%(val_interval*50) == 0:
                     # every epoch, print the info of the certain batch
                     conf_mat,accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = self._compute_info(pred=pred, target=label)
                     print("Epoch-{} Iteration-{}: training-info".format(e+1,i+1)) 
@@ -265,8 +250,6 @@ class Trainer(object):
                     file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
                     file_handle.write('\n')
                 sava_model_name = model_name + "_" + str(e+1) + ".pkl"
-                self.save_model(sava_model_name)
                 
-            
-        
+                self.save_model(sava_model_name)
         return

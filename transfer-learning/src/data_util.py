@@ -72,25 +72,22 @@ class Nptranspose(object):
 
 class Rotation(object):
     def __init__(self,angle=90):
+        
         self.angle = angle
+        
     def __call__(self,sample):
+        
         image,label= sample["image"],sample["label"]
         ids = np.around(360/self.angle)
         multi = np.random.randint(0,ids)
+        
         if multi>0.001:
-            #print("do rotation")
-            # transform.rotate will change the range of the value
-            #print(image.max())
-            #print(image.min())
-            #print(np.unique(label))
+
             image = transform.rotate(image,self.angle*multi).astype(np.float32)
             label = transform.rotate(label,self.angle*multi).astype(np.float32)
-            #print(image.max())
-            #print(image.min())
-            #print(np.unique(label))
+            
             sample["image"] = image
             sample["label"] = label
-            #print(np.unique(label))
         return sample
 
 class H_Mirror(object):

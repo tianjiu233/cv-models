@@ -25,7 +25,8 @@ os.environ["CUDA_VISIBLE_DEVICE"] = "3"
 
 if __name__=="__main__":
 
-    # the shared parameters are listed here
+    # (1)the shared parameters are listed here
+    # cuda,in_chs,and model_path
     cuda = torch.cuda.is_available()
     model_path = "../checkpoint/"
     in_chs= 3
@@ -36,7 +37,11 @@ if __name__=="__main__":
     nir = False # in_chs will be 3
     # train
     data_dir = r"D:/repo/data/customized_GID/Train"
-    data_transform = torchvision.transforms.Compose([RandomCrop(512),Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose(),
+    data_transform = torchvision.transforms.Compose([RandomCrop(512),
+                                                     Rotation(),
+                                                     H_Mirror(),V_Mirror(),
+                                                     ColorAug(),
+                                                     Nptranspose(),
                                                     ])# Add_Mask()])
     train_data = GID(data_dir,transform=data_transform,mode=mode,nir=nir)
     # val
@@ -74,7 +79,8 @@ if __name__=="__main__":
                             epochs=epochs,
                             loss_accu_interval=loss_accu_interval,
                             val_interval=val_interval,
-                            model_name=model_name)
+                            model_name=model_name,
+                            optim_mode="Adadelta")
     
     
     
@@ -99,12 +105,14 @@ if __name__=="__main__":
     
     
     model_name = "seg"
-    # train the model 
+    # restore the model
     restore_model = False
     if restore_model:
         trainer.restore_model(model_name)
     
+    # train model
     # parameters for train
+    model_name = "seg" # it may change.
     epochs=int(1e6)
     train_batch=4
     val_batch=10
@@ -118,6 +126,7 @@ if __name__=="__main__":
                             epochs=epochs,
                             loss_accu_interval=loss_accu_interval,
                             val_interval=val_interval,
-                            model_name=model_name)
+                            model_name=model_name,
+                            optim_mode="Adadelta")
 
 
