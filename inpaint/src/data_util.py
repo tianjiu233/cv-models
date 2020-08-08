@@ -7,6 +7,7 @@ Created on Wed Aug  5 15:10:38 2020
 import cv2
 import os
 import numpy as np
+from tqdm import tqdm
 
 class Stat4Data(object):
     """
@@ -26,80 +27,32 @@ class Stat4Data(object):
     def _meanStdDev(self):
         
         stats = []
-        for item in self.data:
+        for item in tqdm(self.data):
             image = self.image_dir + "/" + item + self.suffix
-            image = cv2.imread(image)
+            # read in image
+            image = cv2.imread(image) # [h,w,c], [B,G,R]
+            image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
+            #b,g,r = cv2.split(image)
+            #image = cv2.merge([r,g,b])
             mean,std = cv2.meanStdDev(image)
             stats.append([mean,std])
-    
+
+        # stats [N,2,3,1]
+        stats = np.array(stats)
         stats = np.mean(stats,axis=0)
-        
+        # stats [2,3,1]
         return stats
 
 class Nptranspose(object):
     def __call__(self,sample):
         
-        image = sample["image"]
-        image = image.transpose(2,0,1)
-        sample["image"] = image
-        
-        if "label" in image.keys():
-            label = sample["label"]
-            label = label.transpose(2,0,1)
-            sample["label"] = label
-        
-        return sample
-
-class ColorAug(object):
-    """
-    Input Color Augmentation
-    """
-    def __init__(self,p=0.5):
-        self.p = p
-    def __call__(self,sample):
-        
-        if np.random.random()<(1-self.p):
-            return sample
-        
-        image = sample["image"]
-        
-        n_ch = image.shape[2]
-        contrast_adj = 0.05
-        bright_adj = 0.05
-        
-        ch_mean = np.mean(image,axis=(0,1),keepdims=True).astype(np.float32)
-        
-        contrast_mul = np.random.uniform(1 - contrast_adj, 1 + contrast_adj, (1, 1, n_ch)).astype(np.float32)   
-        bright_mul = np.random.uniform(1 - bright_adj, 1 + bright_adj, (1, 1, n_ch)).astype(np.float32)
-        
-        # if contrast_mul = 1 & bright_mul = 1, then image = image
-        image = (image - ch_mean)*contrast_mul + ch_mean * bright_mul
-        
-        # clip the value
-        image = image.clip(min=0,max=1)
-        sample["image"] = image
-        
+        for item in sample.keys():
+            mat_data = sample[item]
+            mat_data = mat_data.transpose(2,0,1)
+            sample[item] = mat_data
+            
         return sample
     
-class Rotation(object):
-    def __init__(self,angle=90):
-        
-        self.angle = angle
-        
-    def __call__(self,sample):
-        
-        image,label= sample["image"],sample["label"]
-        ids = np.around(360/self.angle)
-        multi = np.random.randint(0,ids)
-        
-        if multi>0.001:
-
-            image = transform.rotate(image,self.angle*multi).astype(np.float32)
-            label = transform.rotate(label,self.angle*multi).astype(np.float32)
-            
-            sample["image"] = image
-            sample["label"] = label
-        return sample
 
 class H_Mirror(object):
     def __init__(self,p=0.5):

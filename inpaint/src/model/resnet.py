@@ -91,7 +91,7 @@ class Bottleneck(nn.Module):
         return output_tensor
         
 class ResNet_coach_vae(nn.Module):
-    def __init__(self,in_chs,block,layers,drop_ratio=0.5):
+    def __init__(self,in_chs,block,layers,drop_ratio=0.75):
         self.inplanes = 64
         super(ResNet_coach_vae,self).__init__()
         torch.cuda.manual_seed(7)
@@ -198,8 +198,8 @@ class ResNet_coach_vae(nn.Module):
         
         return mask,mu,logvar
 
-def resnet18_coach_vae(in_chs,**kwargs):
-    model = ResNet_coach_vae(in_chs, block=BasicBlock, layers=[2,2,2,2],**kwargs)
+def resnet18_coach_vae(in_chs,drop_ratio,**kwargs):
+    model = ResNet_coach_vae(in_chs,block=BasicBlock, layers=[2,2,2,2],drop_ratio=drop_ratio,**kwargs)
     return model
 
 class ResNet_EncoderDecoder(nn.Module):
@@ -316,14 +316,18 @@ def resnet18_encoderdecoder(in_chs,out_chs,**kwargs):
 if __name__=="__main__":
     
     # coach_net
-    coach_net = resnet18_coach_vae(in_chs=3)
+    coach_net = resnet18_coach_vae(in_chs=3,drop_ratio=0.75)
     sample = torch.rand(size=(3,3,512,512))
+    mask,mu,logvar= coach_net(sample,alpha=1,use_coach=True)
+    """
     with torch.no_grad():
         mask,mu,logvar= coach_net(sample,alpha=1,use_coach=True)
-        
+      """  
     # encoderdecoder_net
-    encoderdecoder_net = resnet18_encoderdecoder(in_chs=3, out_chs=3)
+    net = resnet18_encoderdecoder(in_chs=3, out_chs=3)
     sample = torch.rand(size=(3,3,512,512))
+    outputs = net(sample*mask).detach()
+    """
     with torch.no_grad():
         output = encoderdecoder_net(sample)
-    
+        """
