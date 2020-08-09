@@ -13,10 +13,12 @@ import torch
 import torch.optim as optim 
 import torch.nn.functional as F
 
+from skimage import io
+
 import warnings
 warnings.filterwarnings("ignore")
 
-def _sample_inpaint(sample,cuda,device=None):
+def _sample_inpaint(sample,cuda=False,device=None):
     
     input_ = sample["input_"]
     mask = sample["mask"]
@@ -29,7 +31,7 @@ def _sample_inpaint(sample,cuda,device=None):
     
     return input_,mask,image
 
-def _sample_segmentation(sample,cuda,device=None):
+def _sample_segmentation(sample,cuda=False,device=None):
     
     image = sample["image"]
     label = sample["label"]
@@ -52,7 +54,69 @@ def _restore_model(model_name="seg",model_path="../checkpoint",cuda=False,device
         net = net.to(device)
     return net
 
-def _visualize_inpaint(net,coah,image,cuda,device):
+def _visualize_inpaint(dataloader,
+                       net,coach,
+                       stats,
+                       prefix,
+                       cuda=False,device=None,
+                       pic_dir = "../temp"):
+    net.eval()
+    coach.eval()
+    
+    mean_rgb = stats[0,:,0] # [3]
+    std_rgb = stats[1,:,0] # [3]
+    
+    for batch_idx,sample in tqdm(enumerate(dataloader)):
+        
+        if (batch_idx+1) == 12:
+            break
+        
+        # input_ is actually the image, and the "image" is the target
+        input_,mask,image = _sample_inpaint(sample,cuda=cuda,device=device)
+        
+        coach_mask = coach(input_,alpha = 100)
+        inpaint_pred = net(input_*coach_mask)
+        
+        
+        bs = input_.size(0)
+        # to numpy 
+        # [bs,c,h,w] -> [bs,h,w,c]
+        input_ = input_.cpu().numpy()
+        input_ = input_.transpose(0,2,3,1)
+        # [bs,c,h,w] -> [bs,h,w,c]
+        inpaint_pred = inpaint_pred.detach().cpu().numpy()
+        inpaint_pred = inpaint_pred.transpose(0,2,3,1)
+        # [bs,1,h,w] -> [bs,h,w,1]
+        coach_mask = coach_mask.detach().cpu().numpy()
+        coach_mask = coach_mask.transpose(0,2,3,1)
+        
+        for b_ in range(bs):
+            input_b_ = input_[b_] # [h,w,c]
+            input_b_ = input_b_ + mean_rgb
+            input_b_ = input_b_.clip(0,255)
+            input_b_ = input_b_.astyp(np.uint8)
+            
+            inpaint_b_ = inpaint_pred[b_] # [h,w,c]
+            inpaint_b_[:,:,0] *= 3*std_rgb[:,:,0]
+            inpaint_b_[:,:,1] *= 3*std_rgb[:,:,1]
+            inpaint_b_[:,:,2] *= 3*std_rgb[:,:,2]
+            inpaint_b_ = inpaint_b_ + mean_rgb
+            inpaint_b_ = inpaint_b_.clip(0,255)
+            inpaint_b_ = inpaint_b_.astype(np.uint8)
+            
+            coach_mask_b_ = coach_mask[b_] # [h,w,1]
+            coach_mask_b_ = coach_mask_b_[:,:,0] # [h,w]
+            coach_mask_b_ = coach_mask_b_.clip(0,1)
+            
+            io.imsave(fname=pic_dir + "/" + prefix + "input_image.jpg",
+                      arr=input_b_)
+            io.imsave(fname=pic_dir + "/" + prefix + "inpainted_image.jpg",
+                      arr=inpaint_b_)
+            io.imsave(fname=pic_dir + "/" + prefix + "coach_mask.jpg",
+                      arr=coach_mask_b_)
+    
+    net.train()
+    coach.train()
     return
 
 def _rec_loss(pred,target,mask):

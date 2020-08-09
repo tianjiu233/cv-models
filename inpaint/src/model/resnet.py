@@ -116,7 +116,7 @@ class ResNet_coach_vae(nn.Module):
         
         self.upsample = nn.Upsample(scale_factor = 16, mode = "nearest")
         
-        self.sigmoid = nn.Sigmoid()
+        self.sigmoid = nn.Sigmoid()  # [0,1]
         
         
     def _make_layer(self,block,planes,blocks,stride=1):

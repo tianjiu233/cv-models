@@ -26,6 +26,7 @@ from train import train_context_inpainting,train_coach
 from train import train_stepbystep
 from train import validate4inpaint
 from train import _save_model,_restore_model
+from train import _visualize_inpaint
 
 from model.resnet import resnet18_encoderdecoder,resnet18_coach_vae
 
@@ -45,7 +46,7 @@ AerialImageDataset_stats = np.array([AerialImageDataset_mean_rgb,
                                      AerialImageDataset_std_rgb])  
  
 if __name__=="__main__":
-    print("Testing...")
+    print("Run main fcn...")
     # 0. hyparameters
     cuda = torch.cuda.is_available()
     if cuda:
@@ -113,8 +114,7 @@ if __name__=="__main__":
                                              batch_size=1,shuffle=False)
 
     
-    
-    
+    """   
     # 3.1 train model using train_context_inpainting & train_coach
     # ---begin---
     epochs = [100, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]
@@ -157,8 +157,16 @@ if __name__=="__main__":
             loss_rec,loss_con,_,__ = validate4inpaint(inpaint_val_dataloader,
                                                       coach,net,
                                                       cuda=cuda,device=device)
+            # save image
+            _visualize_inpaint(inpaint_val_dataloader,
+                       net=net,coach=coach,
+                       stats = AerialImageDataset_stats,
+                       prefix = "epoch_"+str(e+1)+"_",
+                       cuda=cuda,device=device,
+                       pic_dir = "../temp")
     
     # ---end---
+    """
     
     # 3.2 train the model using train_stepbystep
     epochs = int(1e5)
@@ -175,10 +183,15 @@ if __name__=="__main__":
                                                       coach,net,
                                                       cuda=cuda,device=device)
             print("Epoch-{}(validation): loss_rec:{:.5f}; loss_con:{:.5f}")
-            
             with open("train-info.txt","a") as file_handle:    
                 file_handle.write("Epoch-{}(validation): loss_rec:{:.5f}; loss_con:{:.5f}")
                 file_handle.write("\n")
-            
             _save_model(coach,model_name="coach"+"_epoch_"+str(e+1),model_path = "../checkpoint",cuda=False,device=None)
             _save_model(net,model_name="net"+"_epoch_"+str(e+1),model_path = "../checkpoint",cuda=False,device=None)
+            # save image
+            _visualize_inpaint(inpaint_val_dataloader,
+                       net=net,coach=coach,
+                       stats = AerialImageDataset_stats,
+                       prefix = "epoch_"+str(e+1)+"_",
+                       cuda=cuda,device=device,
+                       pic_dir = "../temp")

@@ -223,7 +223,6 @@ class context_inpaint_data(data.Dataset):
         axs[2].imshow(image.astype(np.uint8))
         axs[2].axis("off")
         
-        
         plt.tight_layout()
         plt.show()
         plt.close()
