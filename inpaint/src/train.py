@@ -74,7 +74,7 @@ def _visualize_inpaint(dataloader,
         # input_ is actually the image, and the "image" is the target
         input_,mask,image = _sample_inpaint(sample,cuda=cuda,device=device)
         
-        coach_mask = coach(input_,alpha = 100)
+        coach_mask,mu,logvar = coach(input_,alpha = 100)
         inpaint_pred = net(input_*coach_mask)
         
         
@@ -94,25 +94,26 @@ def _visualize_inpaint(dataloader,
             input_b_ = input_[b_] # [h,w,c]
             input_b_ = input_b_ + mean_rgb
             input_b_ = input_b_.clip(0,255)
-            input_b_ = input_b_.astyp(np.uint8)
+            input_b_ = input_b_.astype(np.uint8)
             
             inpaint_b_ = inpaint_pred[b_] # [h,w,c]
-            inpaint_b_[:,:,0] *= 3*std_rgb[:,:,0]
-            inpaint_b_[:,:,1] *= 3*std_rgb[:,:,1]
-            inpaint_b_[:,:,2] *= 3*std_rgb[:,:,2]
+            inpaint_b_[:,:,0] *= 3*std_rgb[0]
+            inpaint_b_[:,:,1] *= 3*std_rgb[1]
+            inpaint_b_[:,:,2] *= 3*std_rgb[2]
             inpaint_b_ = inpaint_b_ + mean_rgb
             inpaint_b_ = inpaint_b_.clip(0,255)
             inpaint_b_ = inpaint_b_.astype(np.uint8)
             
             coach_mask_b_ = coach_mask[b_] # [h,w,1]
             coach_mask_b_ = coach_mask_b_[:,:,0] # [h,w]
-            coach_mask_b_ = coach_mask_b_.clip(0,1)
+            coach_mask_b_ = coach_mask_b_.clip(0,1)*255
+            coach_mask_b_ = coach_mask_b_.astype(np.uint8)
             
-            io.imsave(fname=pic_dir + "/" + prefix + "input_image.jpg",
+            io.imsave(fname=pic_dir + "/" + prefix  +str(batch_idx+1)+"_"+str(b_+1)+"_"+ "input_image.jpg",
                       arr=input_b_)
-            io.imsave(fname=pic_dir + "/" + prefix + "inpainted_image.jpg",
+            io.imsave(fname=pic_dir + "/" + prefix +str(batch_idx+1)+"_"+str(b_+1)+"_"+ "inpainted_image.jpg",
                       arr=inpaint_b_)
-            io.imsave(fname=pic_dir + "/" + prefix + "coach_mask.jpg",
+            io.imsave(fname=pic_dir + "/" + prefix +str(batch_idx+1)+"_"+str(b_+1)+"_"+ "coach_mask.jpg",
                       arr=coach_mask_b_)
     
     net.train()
@@ -132,7 +133,7 @@ def validate4inpaint(val_dataloader,coach,net,
     
     for batch_idx,sample in enumerate(val_dataloader):
         # get the batch data
-        input_,_,image = _sample_inpaint(sample.cuda,device)
+        input_,_,image = _sample_inpaint(sample,cuda,device)
         
         loss_rec_list = []
         loss_con_list = []
@@ -140,7 +141,7 @@ def validate4inpaint(val_dataloader,coach,net,
         average_loss_con = 0
         with torch.no_grad():
             mask,mu,logvar = coach(input_,alpha=100)
-            """
+            
             # first loss format
             # ---begin---
             inpaint_pred_1 = net(input_*mask)
@@ -153,8 +154,8 @@ def validate4inpaint(val_dataloader,coach,net,
             mse_loss = -1*F.threshold(-1*mse_loss,-2,-2)
             loss_con = torch.sum(mse_loss*mask)/torch.sum(mask)
             # ---end---
-            """
             
+            """
             # second loss format
             # ---begin---
             inpaint_pred = net(input_*mask)
@@ -163,9 +164,9 @@ def validate4inpaint(val_dataloader,coach,net,
             loss_rec = torch.sum(mse_loss*(1-mask))/(torch.sum(1-mask))
             loss_con = torch.sum(mse_loss*mask)/torch.sum(mask)
             # --end---
-            
-            loss_rec_val = loss_rec.detach().cpu().numpy()[0]
-            loss_con_val = loss_con.detach().cpu().numpy()[0]
+            """
+            loss_rec_val = loss_rec.detach().cpu().numpy()
+            loss_con_val = loss_con.detach().cpu().numpy()
             
             loss_rec_list.append(loss_rec_val)
             loss_con_list.append(loss_con_val)
@@ -199,7 +200,8 @@ def train_stepbystep(train_dataloader,
         coach_optimizer.zero_grad()
         
         mask,mu,logvar = coach(input_,alpha=1)
-        inpaint_pred = net(input_*mask)
+        # Should there be a detach() ??
+        inpaint_pred = net(input_*mask).detach()
         # loss_rec
         mse_loss = (inpaint_pred-image)**2
         mse_loss = -1*F.threshold(-1*mse_loss,-2,-2)
@@ -225,7 +227,7 @@ def train_stepbystep(train_dataloader,
         mask,_,__ = coach(input_,alpha=100)
         mask = mask.detach()
         
-        """
+        
         # first loss format
         # ---begin---
         # loss_rec
@@ -239,8 +241,8 @@ def train_stepbystep(train_dataloader,
         mse_loss = -1*F.threshold(-1*mse_loss,-2,-2)
         loss_con = torch.sum(mse_loss*mask)/torch.sum(mask)
         # ---end---
-        """
         
+        """
         # second loss format
         # ---begin---
         inpaint_pred = net(input_*mask)
@@ -249,7 +251,7 @@ def train_stepbystep(train_dataloader,
         loss_rec = torch.sum(mse_loss*(1-mask))/(torch.sum(1-mask))
         loss_con = torch.sum(mse_loss*mask)/torch.sum(mask)
         # ---end--
-        
+        """
         loss = loss_con*rec_weight + loss_rec*(1-rec_weight)
         loss.backward()
         net_optimizer.step()
@@ -305,7 +307,7 @@ def train_coach(train_dataloader,net,coach,coach_optimizer,
         masks,mu,logvar = coach.forward(inputs_,alpha=1)
         
         # In the official codes, there is a .detach() here.
-        outputs = net(inputs_*masks)
+        outputs = net(inputs_*masks).detach()
         mse_loss = (outputs-targets)**2
         mse_loss = -1*F.threshold(-1*mse_loss, -2, -2)
     

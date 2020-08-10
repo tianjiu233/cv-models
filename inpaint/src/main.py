@@ -54,11 +54,14 @@ if __name__=="__main__":
     else:
         device = torch.device("cpu")
         
-    data_dir = r"C:\Users\huijian\Downloads\repo\data\AerialImageDataset"
+    data_dir = r"D:\repo\data\AerialImageDataset"
     model_path = "../checkpoint"
     # 1. build the dataset (segmentation dataloader and the inpaint dataloader)
-    image_dir = data_dir +"/" + "images"
-    label_dir = data_dir + "/" + "gt"
+    train_image_dir = data_dir +"/" + "images"
+    train_label_dir = data_dir + "/" + "gt"
+    
+    val_image_dir = data_dir + "/" + "validation_images"
+    val_gt_dir = data_dir + "/" + "validation_gt"
     
     # some parameters for erase process
     # size of each block used to erase image
@@ -68,17 +71,17 @@ if __name__=="__main__":
     rec_weight = 0.99
     
     data_transform = torchvision.transforms.Compose([Nptranspose()])
-    inpaint_train_data = context_inpaint_data(image_dir=image_dir,stats=AerialImageDataset_stats,
+    inpaint_train_data = context_inpaint_data(image_dir=train_image_dir,stats=AerialImageDataset_stats,
                                               erase_shape = erase_shape,erase_count = erase_count,
                                               rotate = 0.5, 
                                               resize=0.5,
                                               crop = True, crop_shape = crop_shape,
                                               transform=data_transform)
     
-    inpaint_val_data = context_inpaint_data(image_dir=image_dir,stats=AerialImageDataset_stats,
+    inpaint_val_data = context_inpaint_data(image_dir=val_image_dir,stats=AerialImageDataset_stats,
                                               erase_shape = erase_shape,erase_count = erase_count,
-                                              rotate = 0.5, 
-                                              resize=0.5,
+                                              rotate = 0, 
+                                              resize= 0,
                                               crop = True, crop_shape = crop_shape,
                                               transform=data_transform)
     
@@ -93,8 +96,10 @@ if __name__=="__main__":
         net = net.to(device)
         coach = coach.to(device)
     
-    net_optimizer = optim.SGD(net.parameters(),lr=0.1, momentum=0.9, weight_decay=5e-4)
-    coach_optimizer = optim.Adam(coach.parameters(),lr=3e-4)
+    #net_optimizer = optim.SGD(net.parameters(),lr=0.1, momentum=0.9, weight_decay=5e-4)
+    net_optimizer = optim.Adam(net.parameters(),lr=3e-4)
+    #coach_optimizer = optim.Adam(coach.parameters(),lr=3e-4)
+    coach_optimizer = optim.SGD(net.parameters(),lr=1e-4, momentum=0.9, weight_decay=5e-4)
     
     
     # 3. train the network (for inpaint problem) 
@@ -182,9 +187,9 @@ if __name__=="__main__":
             loss_rec,loss_con,_,__ = validate4inpaint(inpaint_val_dataloader,
                                                       coach,net,
                                                       cuda=cuda,device=device)
-            print("Epoch-{}(validation): loss_rec:{:.5f}; loss_con:{:.5f}")
+            print("Epoch-{}(validation): loss_rec:{:.5f}; loss_con:{:.5f}".format(e+1,loss_rec,loss_con))
             with open("train-info.txt","a") as file_handle:    
-                file_handle.write("Epoch-{}(validation): loss_rec:{:.5f}; loss_con:{:.5f}")
+                file_handle.write("Epoch-{}(validation): loss_rec:{:.5f}; loss_con:{:.5f}".format(e+1,loss_rec,loss_con))
                 file_handle.write("\n")
             _save_model(coach,model_name="coach"+"_epoch_"+str(e+1),model_path = "../checkpoint",cuda=False,device=None)
             _save_model(net,model_name="net"+"_epoch_"+str(e+1),model_path = "../checkpoint",cuda=False,device=None)
@@ -195,3 +200,7 @@ if __name__=="__main__":
                        prefix = "epoch_"+str(e+1)+"_",
                        cuda=cuda,device=device,
                        pic_dir = "../temp")
+            
+    
+    # 4. modify the networks strcture and train the segmentation model
+    
