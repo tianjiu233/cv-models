@@ -140,6 +140,8 @@ class ResNet_coach_vae(nn.Module):
         # the original code line here is
         # eps = Variable(std.data.new(std.size()).normal_())
         eps = (torch.empty(size=std.size(),dtype=std.dtype).normal_())
+        if mu.is_cuda:
+            eps = eps.to(mu.device)
         eps.requires_grad_(True)
         return eps.mul(std).add_(mu)
     

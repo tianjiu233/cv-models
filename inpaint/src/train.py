@@ -225,7 +225,7 @@ def train_stepbystep(train_dataloader,
         
         net_optimizer.zero_grad()
         mask,_,__ = coach(input_,alpha=100)
-        mask = mask.detach()
+        # mask = mask.detach()
         
         
         # first loss format
@@ -270,7 +270,7 @@ def train_context_inpainting(train_dataloader,net,net_optimizer,
     
     for batch_idx,sample in enumerate(train_dataloader,0):
         net_optimizer.zero_grad()
-        inputs_,masks,targets = _sample_inpaint(sample,cuda)
+        inputs_,masks,targets = _sample_inpaint(sample,cuda,device)
         
         if coach is not None:
             masks,_,__ = coach.forward(inputs_,alpha=100,use_coach = use_coach_masks)
@@ -303,7 +303,7 @@ def train_coach(train_dataloader,net,coach,coach_optimizer,
     for batch_idx,sample in enumerate(train_dataloader,0):
         coach_optimizer.zero_grad()
         
-        inputs_,masks,targets = _sample_inpaint(sample,cuda)
+        inputs_,masks,targets = _sample_inpaint(sample,cuda,device)
         masks,mu,logvar = coach.forward(inputs_,alpha=1)
         
         # In the official codes, there is a .detach() here.
