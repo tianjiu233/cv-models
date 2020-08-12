@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<annotation>
+	<source>
+		<filename>1.tif</filename>
+		<origin>高分软件大赛</origin>
+	</source>
+	<research>
+		<version>1.0</version>
+		<provider>参赛单位</provider>
+		<author> </author>
+		<pluginname>目标提取</pluginname>
+		<pluginclass>提取</pluginclass>
+		<time>2020-6-28</time>
+	</research>
+	<segmentation>
+		<resultfile>1_gt.png</resultfile>
+	</segmentation>
+</annotation>

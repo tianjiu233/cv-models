@@ -1,3 +1,0 @@
-Epoch-1 Iteration-50: training-info
-Accuray:0.31726 || Kappa:0.15286
-MIoU:0.11932 || FWIoU:0.18918

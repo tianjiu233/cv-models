@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<node><folder>/home</folder>
+<test_extend>elem 3</test_extend>
+<test_extend>elem 4</test_extend>
+<folder>/home</folder></node>

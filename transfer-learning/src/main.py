@@ -93,13 +93,13 @@ if __name__=="__main__":
     
     # load the target data
     # train
-    data_dir = r"D:\repo\data\GF\Train"
-    # data_dir = "/cetc/nas_remote_sensing/huijian/GF/Train"
+    # data_dir = r"D:\repo\data\GF\Train"
+    data_dir = "/cetc/nas_remote_sensing/huijian/GF/Train"
     data_transform = torchvision.transforms.Compose([Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose()])
     GFData_Train = GFChallenge(data_dir,data_transform)
     # val 
-    data_dir = r"D:\repo\data\GF\Val"
-    # data_dir = "/cetc/nas_remote_sensing/huijian/GF/Val"
+    # data_dir = r"D:\repo\data\GF\Val"
+    data_dir = "/cetc/nas_remote_sensing/huijian/GF/Val"
     data_transform = torchvision.transforms.Compose([Nptranspose()])
     GFData_Val = GFChallenge(data_dir,data_transform)
     
@@ -114,7 +114,7 @@ if __name__=="__main__":
     # parameters for train
     model_name = "seg" # it may change.
     epochs=int(1e6)
-    train_batch=4
+    train_batch=8
     val_batch=10
     loss_accu_interval = 2
     val_interval = 1
@@ -127,6 +127,6 @@ if __name__=="__main__":
                             loss_accu_interval=loss_accu_interval,
                             val_interval=val_interval,
                             model_name=model_name,
-                            optim_mode="Adadelta")
+                            optim_mode="Adam")
 
 

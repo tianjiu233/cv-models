@@ -78,7 +78,7 @@ class Trainer(object):
         return 
     
     def restore_model(self,model_name="seg.pkl"):
-        self.net = torch.load(self.model_path)
+        self.net = torch.load(self.model_path+"/"+model_name)
         if self.cuda:
             self.net = self.net.to(self.device)
         print("model restored!")
@@ -95,7 +95,7 @@ class Trainer(object):
             # Lovász loss
             l_loss = L.lovasz_softmax(probas=F.softmax(pred,dim=1),labels=target)
             
-            loss = ce_loss + l_loss
+            loss = 0.5*ce_loss + 0.5*l_loss
             
         else:
             """
@@ -170,7 +170,7 @@ class Trainer(object):
                     epochs=int(1e6),
                     loss_accu_interval=1,val_interval=16,
                     model_name="seg",
-                    optim_mode="Adadelta"):
+                    optim_mode="Adam"):
         
         if self.cuda:
             self.net = self.net.to(self.device)

@@ -61,6 +61,35 @@ def color2label(color_img,lut):
     
     return lut[indices]
 
+class GF4Test(Dataset):
+    def __init__(self,data_dir):
+        
+        self.image_dir = data_dir
+        data = []
+        
+        files = os.listdir(self.image_dir)
+        for item in files:
+            if item.endswith(".tif"):
+                data.append(item.split(".tif")[0])
+        self.data = data
+    
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self,index):
+        
+        image = self.image_dir + "/" + self.data[index] + ".tif"
+        image = io.imread(image)
+        
+        image = image.astype(np.float32)
+        image = image*1./255
+        
+        sample = {}
+        sample["image"] = image
+        sample["name"] = self.data[index]
+        
+        return sample
+        
 class GFChallenge(Dataset):
     def __init__(self,data_dir,transform=None):
         
