@@ -4,24 +4,31 @@ Created on Wed Jul 29 13:42:52 2020
 
 @author: huijianpzh
 """
+
+# official libs
 import os
 import numpy as np
 
+# torch lib
 import torch
 import torchvision
 import torch.nn as nn
 
-from model.ResNetModel import ResNet34UNet
+# model 
 from model.UNet import Improved_UNet
 
-from data_util import RandomCrop,Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug,Add_Mask
+# dataset
 from GID import GID
 from GFChallenge import GFChallenge
+from data_util import RandomCrop,Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug,Add_Mask
+
+# train
 from trainer import Trainer
 import train_util
 
-os.environ["CUDA_VISIBLE_DEVICE"] = "3"
-#torch.cuda.set_device(3)
+# GPU setting
+# os.environ["CUDA_VISIBLE_DEVICE"] = "3"
+# torch.cuda.set_device(3)
 
 if __name__=="__main__":
 
@@ -30,8 +37,9 @@ if __name__=="__main__":
     cuda = torch.cuda.is_available()
     model_path = "../checkpoint/"
     in_chs= 3
-    ### Pre-Train
+
     
+    ### ------ Pre-Train ------
     # load pre-train dataset
     mode = "coarse"
     nir = False # in_chs will be 3
@@ -53,7 +61,7 @@ if __name__=="__main__":
     
     # define the model
     cls_num=6 # "no-data" are not included.
-    # net = ResNet34UNet(in_chs=in_chs,cls_num=cls_num)
+
     net = Improved_UNet(in_chs=in_chs,cls_num=cls_num)
     
     net.apply(train_util.weights_init)
@@ -84,9 +92,9 @@ if __name__=="__main__":
     
     
     
-    # Real Data
+    ### ------ Real Dataset ------
     # change the model(the special step for transfer-learning)
-    # replace the net.classifer with a new onenew_
+    # replace the net.classifer with a new conv layer
     new_cls_num = 9
     trainer.net.classifier =nn.Conv2d(in_channels=64, out_channels=new_cls_num, kernel_size=1,stride=1,padding=0,bias=True)
                                                 

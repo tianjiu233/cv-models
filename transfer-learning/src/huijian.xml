@@ -1,27 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <annotation>
-	<folder>user</folder>
-	<filename>0000001.jpg</filename>
-	<path>/home</path>
 	<source>
-		<database>Unknown</database>
+		<filename>1.tf</filename>
+		<origin>GF2/GF3</origin>
 	</source>
-	<size>
-		<width>1920</width>
-		<height>1080</height>
-		<depth>3</depth>
-	</size>
-	<segmented>0</segmented>
-	<object>
-		<name>boat</name>
-		<pose>Unspecified</pose>
-		<truncated>1</truncated>
-		<difficult>0</difficult>
-		<bndbox>
-			<xmin>103</xmin>
-			<ymin>1</ymin>
-			<xmax>634</xmax>
-			<ymax>402</ymax>
-		</bndbox>
-	</object>
+	<research>
+		<version>4.0</version>
+		<provider>中电慧遥</provider>
+		<author>huijian</author>
+		<pluginname>地物标注</pluginname>
+		<pluginclass>标注</pluginclass>
+		<time>2020-07-2020-11</time>
+	</research>
+	<segmentation>
+		<resultfile>1_gt.png</resultfile>
+	</segmentation>
 </annotation>

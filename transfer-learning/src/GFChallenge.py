@@ -65,9 +65,15 @@ class GF4Test(Dataset):
     def __init__(self,data_dir):
         
         self.image_dir = data_dir
+        
         data = []
         
+        print(self.image_dir)
         files = os.listdir(self.image_dir)
+        if len(files)==0:
+            self.image_dir = self.image_dir + "/"
+        
+        
         for item in files:
             if item.endswith(".tif"):
                 data.append(item.split(".tif")[0])
