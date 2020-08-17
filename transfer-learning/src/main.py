@@ -64,22 +64,24 @@ if __name__=="__main__":
 
     net = Improved_UNet(in_chs=in_chs,cls_num=cls_num)
     
+    
     net.apply(train_util.weights_init)
     trainer = Trainer(net,cuda=cuda,model_path=model_path)
     
-    model_name = "pre-train"
     
+    restore_model_name = "pre-train"
     restore_model = False
     if restore_model:
-        trainer.restore_model(model_name)
+        trainer.restore_model(restore_model_name)
     
     # parameters for train
     epochs=int(1e6)
     train_batch=8
     val_batch=10
-    loss_accu_interval = 1
+    loss_accu_interval = 2
     val_interval=1
     
+    model_name = "pre-train"
     train_model = False
     if train_model:
         trainer.train_model(train_data,val_data,
@@ -88,7 +90,7 @@ if __name__=="__main__":
                             loss_accu_interval=loss_accu_interval,
                             val_interval=val_interval,
                             model_name=model_name,
-                            optim_mode="Adadelta")
+                            optim_mode="Adam")
     
     
     
@@ -103,7 +105,9 @@ if __name__=="__main__":
     # train
     # data_dir = r"D:\repo\data\GF\Train"
     data_dir = "/cetc/nas_remote_sensing/huijian/GF/Train"
-    data_transform = torchvision.transforms.Compose([Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose()])
+    data_transform = torchvision.transforms.Compose([Rotation(),H_Mirror(),V_Mirror(),
+                                                     ColorAug(),
+                                                     Nptranspose()])
     GFData_Train = GFChallenge(data_dir,data_transform)
     # val 
     # data_dir = r"D:\repo\data\GF\Val"
@@ -111,22 +115,22 @@ if __name__=="__main__":
     data_transform = torchvision.transforms.Compose([Nptranspose()])
     GFData_Val = GFChallenge(data_dir,data_transform)
     
-    
-    model_name = "seg"
     # restore the model
+    restore_model_name = "pre-train"
     restore_model = False
     if restore_model:
-        trainer.restore_model(model_name)
+        trainer.restore_model(restore_model_name)
     
     # train model
     # parameters for train
-    model_name = "seg" # it may change.
+    
     epochs=int(1e6)
     train_batch=8
     val_batch=10
     loss_accu_interval = 2
     val_interval = 1
     
+    model_name = "seg"
     train_model = True
     if train_model:
         trainer.train_model(GFData_Train,GFData_Val,
