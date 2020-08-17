@@ -185,10 +185,6 @@ class Trainer(object):
         # prepare loss functions
         # cross entropy
         self.ce_loss = nn.CrossEntropyLoss(weight=None,reduction="mean")
-        # focal loss
-        alpha = [1,1,1,1,1,1,1,1,1]
-        gamma = 2
-        self.focal_loss = FocalLoss(alpha,gamma,reduction="mean")
         
         # prepare the optimizer and its strategies
         if optim_mode == "Adam":
