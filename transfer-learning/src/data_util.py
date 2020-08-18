@@ -8,7 +8,7 @@ Created on Tue Jul 28 11:21:30 2020
 import numpy as np
 from skimage import transform
 
-class Add_Mask(object):
+class GenerateMask(object):
     """
     add the mask, which mean data is available
     """
@@ -50,8 +50,7 @@ class ColorAug(object):
         
         # clip the value
         image = image.clip(min=0,max=1)
-        
-        
+    
         return {'image':image,'label':label}
 
 class Nptranspose(object):

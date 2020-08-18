@@ -20,7 +20,8 @@ from model.UNet import Improved_UNet
 # dataset
 from GID import GID
 from GFChallenge import GFChallenge
-from data_util import RandomCrop,Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug,Add_Mask
+from data_util import RandomCrop,Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug
+from data_util import GenerateMask
 
 # train
 from trainer import Trainer
@@ -50,12 +51,12 @@ if __name__=="__main__":
                                                      H_Mirror(),V_Mirror(),
                                                      ColorAug(),
                                                      Nptranspose(),
-                                                    ])# Add_Mask()])
+                                                    ])# GenerateMask()])
     train_data = GID(data_dir,transform=data_transform,mode=mode,nir=nir)
     # val
     data_dir = r"D:/repo/data/customized_GID/Val"
     data_transform = torchvision.transforms.Compose([Nptranspose(),
-                                                     ])#Add_Mask()])
+                                                     ])#GenerateMask()])
     val_data = GID(data_dir,transform=data_transform,mode=mode,nir=nir)
     
     

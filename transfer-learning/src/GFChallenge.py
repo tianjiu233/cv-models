@@ -6,17 +6,17 @@ Created on Wed Jul 29 17:36:18 2020
 """
 
 import os
+import random
 import numpy as np
 
 import matplotlib.pyplot as plt
 from skimage import io
 
-import torch
 import torchvision
 from torch.utils.data import Dataset,DataLoader
 
 # mylibs
-from data_util import Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug,Add_Mask
+from data_util import Nptranspose,H_Mirror,V_Mirror,Rotation,ColorAug
 
 label2name={0:"daolu",
             1:"jianzhu",
@@ -97,7 +97,20 @@ class GF4Test(Dataset):
         return sample
         
 class GFChallenge(Dataset):
-    def __init__(self,data_dir,transform=None):
+    def __init__(self,data_dir,
+                 scale_list = [128,192,256,512],
+                 batch_interval = 10,
+                 transform=None):
+        
+        
+        self.scale_list = scale_list
+        if len(scale_list)!=0:
+            self.current_scale = self.scale_list[0]
+        else:
+            self.current_scale = None
+        self.batch_interval = batch_interval
+        self.batch_count = 0
+        
         
         self.transform = transform
         
@@ -121,6 +134,21 @@ class GFChallenge(Dataset):
     def __len__(self):
         return len(self.data)
     
+    def collate_fn(self,batch):
+        
+        if (self.batch_count+1)%self.batch_interval == 0:
+            index = random.randint(0,len(self.scale_list)-1)
+            self.current_scale = self.scale_list[index]
+        self.batch_count = self.batch_count + 1
+        
+        # batch is a list of [sample1,sample2,sample3...]
+        new_batch = {}
+        keys = batch[0].keys()
+        for k in keys:
+            new_batch[k] = np.concatenate(list(map(lambda x:x[k][np.newaxis,...], batch)),axis=0)
+        
+        return new_batch
+    
     def __getitem__(self,index):
         
         image = self.image_dir + "/" + self.data[index] + ".tif"
@@ -130,20 +158,48 @@ class GFChallenge(Dataset):
         label = io.imread(label)
         
         # some basic process
-        image = image*1./255
+        image = image.astype(np.float32)*1./255
         label = label[:,:,0:3]
         label = color2label(color_img=label,lut=self.lut)
         label = label[...,np.newaxis]
         label = label.astype(np.float32)
         
-        # print(self.data[index])
-        
         sample = {}
         sample["image"] = image.astype(np.float32)
         sample["label"] = label.astype(np.float32)
         
+        if len(self.scale_list)>0:
+            sample = self.get_random_crop(sample)
+        
         if self.transform is not None:
             sample = self.transform(sample)
+        
+        return sample
+    
+    def get_random_crop(self,sample):
+        """
+        The effect of this fcn is different from data.util.RandomCrop, thought the codes are the same.
+        It provides the model with multi-scale images.
+        """
+        
+        image,label = sample["image"], sample["label"]
+        h,w = image.shape[0:2]
+        
+        if h<= self.current_scale or w<=self.current_scale:
+            return sample
+        
+        new_h = self.current_scale
+        new_w = self.current_scale
+        
+        top = np.random.randint(0, h-new_h)
+        left = np.random.randint(0, w-new_w)
+        
+        image = image[top:top+new_h, left:left+new_w,:]
+        label = label[top:top+new_h, left:left+new_w,:]
+        
+        sample = {}
+        sample["image"] = image
+        sample["label"] = label
         
         return sample
     
@@ -188,8 +244,6 @@ class GFChallenge(Dataset):
         
         fig,axs = plt.subplots(1,2)
         
-        # print(image.shape)
-        
         axs[0].imshow(image)
         axs[0].axis("off")
         axs[1].imshow(new_label)
@@ -203,14 +257,31 @@ if __name__=="__main__":
     data_dir = r"D:\repo\data\GF\Train"
     
     data_transform = None
-    GFData_1 = GFChallenge(data_dir,data_transform)
-    GFData_1.show_patch(index=100)
+    GFData_1 = GFChallenge(data_dir,
+                           scale_list = [],
+                           transform = data_transform)
+    #GFData_1.show_patch(index=100)
     
     data_transform = torchvision.transforms.Compose([Rotation(),H_Mirror(),V_Mirror(),ColorAug(),Nptranspose()])
-    GFData_2 = GFChallenge(data_dir,data_transform)
-    GFData_2.show_sample(index=100)
+    data_transform = None
+    GFData_2 = GFChallenge(data_dir,
+                           scale_list = [128,192,256,512],
+                           transform = data_transform)
+    #GFData_2.show_sample(index=100)
     
-    sample = GFData_2[8] 
-    mask = ("mask" in sample.keys())
+    # test Dataloader
+    
+    data_loader_2 = DataLoader(dataset=GFData_2,
+                               batch_size=2,
+                               collate_fn = GFData_2.collate_fn)
+    for idx,sample in enumerate(data_loader_2,0):
+        image = sample["image"]
+        label = sample["label"]
+        print("This is idx:{}".format(idx+1))
+        print(image.shape)
+        print(label.shape)
+    
+    
+    
 
     
