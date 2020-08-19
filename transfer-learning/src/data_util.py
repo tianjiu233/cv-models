@@ -8,20 +8,6 @@ Created on Tue Jul 28 11:21:30 2020
 import numpy as np
 from skimage import transform
 
-class GenerateMask(object):
-    """
-    add the mask, which mean data is available
-    """
-    def __call__(self,sample):
-        image,label = sample["image"],sample["label"]
-        mask = np.zeros(shape=label.shape,dtype=np.float32)
-        
-        mask[label>0.5] = 1
-        #print(mask.shape)
-        sample = { "image":image,"label":label,"mask":mask
-            }
-        
-        return sample
 
 class ColorAug(object):
     """

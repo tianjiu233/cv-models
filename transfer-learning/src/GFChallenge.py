@@ -108,6 +108,7 @@ class GFChallenge(Dataset):
             self.current_scale = self.scale_list[0]
         else:
             self.current_scale = None
+            
         self.batch_interval = batch_interval
         self.batch_count = 0
         

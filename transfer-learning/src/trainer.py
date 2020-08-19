@@ -37,7 +37,7 @@ class Trainer(object):
         else:
             self.device = torch.device("cpu")
         
-    def _sample(self,sample,mask=False):
+    def _sample(self,sample):
         """
         For the limitation of dataset, the mask is required.
         
@@ -56,14 +56,6 @@ class Trainer(object):
         if self.cuda:
             image = image.to(self.device)
             label = label.to(self.device)
-        
-        if mask is True:
-            # process the mask and label
-            mask = sample["mask"]
-            label = label - 1
-            if self.cuda:
-                mask= mask.to(self.device)
-            return image,label,mask
 
         return image,label,None
     
@@ -88,24 +80,11 @@ class Trainer(object):
         # pred: (batch,cls_num,height,width) 
         # target: (batch,height,width) val:0->cls_num-1
         
-        if self.mask is False:
-            # no mask case
-            # ce loss
-            ce_loss = self.ce_loss(pred,target)
-            # Lovász loss
-            l_loss = L.lovasz_softmax(probas=F.softmax(pred,dim=1),labels=target)
-            
-            loss = 0.5*ce_loss + 0.5*l_loss
-            
-        else:
-            """
-            speical process for target
-            """
-            target[target<0] =0
-            loss = F.cross_entropy(pred,target,reduction="none")
-            mask = mask.squeeze(1)
-            loss = loss*mask
-            loss = loss.mean()
+        # ce loss
+        ce_loss = self.ce_loss(pred,target)
+        # Lovász loss
+        l_loss = L.lovasz_softmax(probas=F.softmax(pred,dim=1),labels=target)
+        loss = 0.5*ce_loss + 0.5*l_loss
             
         return loss
     
@@ -165,8 +144,7 @@ class Trainer(object):
         self.net.train()
         return accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa
     
-    def train_model(self,train_data,val_data,
-                    train_batch,val_batch,
+    def train_model(self,train_loader,val_loader,
                     epochs=int(1e6),
                     loss_accu_interval=1,val_interval=16,
                     model_name="seg",
@@ -175,12 +153,9 @@ class Trainer(object):
         if self.cuda:
             self.net = self.net.to(self.device)
         
-        # prepare data and check the mask
-        self.train_loader = DataLoader(dataset=train_data,batch_size=train_batch,shuffle=True)
-        self.val_loader = DataLoader(dataset=val_data,batch_size=val_batch,shuffle=False)
-        
-        # to check wether the trainer need a mask
-        self.mask = ("mask" in train_data[0].keys())
+        # prepare data
+        self.train_loader = train_loader
+        self.val_loader = val_loader
         
         # prepare loss functions
         # cross entropy
@@ -188,15 +163,13 @@ class Trainer(object):
         
         # prepare the optimizer and its strategies
         if optim_mode == "Adam":
-            self.optimizer = optim.Adam(params=self.net.parameters(),lr=1.3e-2,betas=(0.5,0.99))
+            self.optimizer = optim.Adam(params=self.net.parameters(),lr=3e-4,betas=(0.5,0.99))
         elif optim_mode == "Adadelta":
             self.optimizer = optim.Adadelta(params=self.net.parameters(),lr=0.1,weight_decay=0.0001)
         else:
             self.optimizer = optim.SGD(params=self.net.parameters(),lr=1e-2)
         
-        if self.mask:
-            print("There is invalid data in the dataset!")
-        
+
         # optimizer and loss initial
         self.optimizer.zero_grad()
         loss = 0
@@ -206,10 +179,10 @@ class Trainer(object):
         for e in tqdm(range(epochs)):
             for i,sample in enumerate(self.train_loader,0):
                 # train
-                image,label,mask =self._sample(sample,mask=self.mask)
+                image,label =self._sample(sample,mask=self.mask)
                 pred = self.net(image)
                 # compute loss
-                loss =self._loss(pred=pred,target=label,mask=mask)
+                loss =self._loss(pred=pred,target=label)
                 loss = loss/loss_accu_interval
                 loss.backward()
                 
