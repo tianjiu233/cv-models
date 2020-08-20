@@ -47,7 +47,9 @@ class Trainer(object):
         
         image,label = sample["image"],sample["label"]
         
-        image =image.to(torch.float32)
+        image = torch.FloatTensor(image)
+        label = torch.FloatTensor(label)
+        
         # from [b,1,h,w] to [b,h,w], 
         # usually the official loss fcn requires the format of [N,d1,d2...]
         label = label.squeeze(1) 
@@ -57,7 +59,7 @@ class Trainer(object):
             image = image.to(self.device)
             label = label.to(self.device)
 
-        return image,label,None
+        return image,label
     
     def save_model(self,model_name="seg.pkl"):
         if self.cuda:
@@ -119,7 +121,7 @@ class Trainer(object):
         total_conf_mat = 0
         for i,sample in tqdm(enumerate(self.val_loader,0)):
             # sample
-            image,label,mask = self._sample(sample)
+            image,label = self._sample(sample)
             
             with torch.no_grad():
                 pred = self.net(image)
@@ -179,7 +181,8 @@ class Trainer(object):
         for e in tqdm(range(epochs)):
             for i,sample in enumerate(self.train_loader,0):
                 # train
-                image,label =self._sample(sample,mask=self.mask)
+                image,label =self._sample(sample)
+                # print(image.shape)
                 pred = self.net(image)
                 # compute loss
                 loss =self._loss(pred=pred,target=label)
@@ -191,12 +194,13 @@ class Trainer(object):
                     self.optimizer.zero_grad()
                     
                 
-                if (i+1)%(val_interval*50) == 0:
+                if (i+1)%(val_interval*100) == 0:
                     # every epoch, print the info of the certain batch
                     conf_mat,accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = self._compute_info(pred=pred, target=label)
                     print("Epoch-{} Iteration-{}: training-info".format(e+1,i+1)) 
                     print("Accuray:{:.5f} || Kappa:{:.5f}".format(accu,kappa))
                     print("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
+                    """
                     with open("train-info.txt","a") as file_handle:
                         file_handle.write("Epoch-{} Iteration-{}: training-info".format(e+1,i+1))
                         file_handle.write('\n')
@@ -204,6 +208,7 @@ class Trainer(object):
                         file_handle.write('\n')
                         file_handle.write("MIoU:{:.5f} || FWIoU:{:.5f}".format(mean_iou,fw_iou))
                         file_handle.write('\n')
+                        """
             
             if (e+1)%val_interval == 0:
                 accu,accu_per_cls,accu_cls,iou,mean_iou,fw_iou,kappa = self.validate(val_data_loader = self.val_loader)

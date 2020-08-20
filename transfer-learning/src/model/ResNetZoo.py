@@ -389,24 +389,33 @@ class ResNetUNet(nn.Module):
         
         # decoder
         expansion=block.expansion
+        reduction = int(4/expansion)
         
-        self.upsample1 = nn.Sequential(UPCONV_BN_AC(512*expansion,1024),
-                                       CONV_BN_AC(1024,1024),
-                                       CONV_BN_AC(1024,256*expansion))
+        self.upsample1 = nn.Sequential(CONV_BN_AC(512*expansion,512*expansion//reduction,kernel=1,stride=1,pad=0),
+                                       UPCONV_BN_AC(512*expansion//reduction,512*expansion//reduction),
+                                       CONV_BN_AC(512*expansion//reduction,256*expansion,kernel=1,stride=1,pad=0)
+                                       )
         
-        self.upsample2 = nn.Sequential(UPCONV_BN_AC(2*256*expansion,512),
-                                       CONV_BN_AC(512,512),
-                                       CONV_BN_AC(512,128*expansion))
+        self.upsample2 = nn.Sequential(CONV_BN_AC(2*256*expansion,256*expansion//reduction,kernel=1,stride=1,pad=0),
+                                       UPCONV_BN_AC(256*expansion//reduction,256*expansion//reduction),
+                                       CONV_BN_AC(256*expansion//reduction,128*expansion,kernel=1,stride=1,pad=0)
+                                       )
         
-        self.upsample3 = nn.Sequential(UPCONV_BN_AC(2*128*expansion,256),
-                                       CONV_BN_AC(256,256),
-                                       CONV_BN_AC(256,64*expansion))
+        self.upsample3 = nn.Sequential(CONV_BN_AC(2*128*expansion,128*expansion//reduction,kernel=1,stride=1,pad=0),
+                                       UPCONV_BN_AC(128*expansion//reduction,128*expansion//reduction),
+                                       CONV_BN_AC(128*expansion//reduction,64*expansion,kernel=1,stride=1,pad=0)
+                                       )
         
-        self.upsample4 = nn.Sequential(UPCONV_BN_AC(2*64*expansion,128),
-                                       CONV_BN_AC(128,128),
-                                       CONV_BN_AC(128,64))
+        self.upsample4 = nn.Sequential(CONV_BN_AC(2*64*expansion,64*expansion//reduction,kernel=1,stride=1,pad=0),
+                                       UPCONV_BN_AC(64*expansion//reduction,64*expansion//reduction),
+                                       CONV_BN_AC(64*expansion//reduction,64,kernel=1,stride=1,pad=0)
+                                       )
+        
+        
+        self.final_conv = nn.Sequential(CONV_BN_AC(2*64,64),
+                                        CONV_BN_AC(64,64))
         # classifier
-        self.classifier = nn.Conv2d(in_channels=128, 
+        self.classifier = nn.Conv2d(in_channels=64, 
                                     out_channels=out_chs, kernel_size=1)
         
     def _make_layer(self,block,planes,blocks,
@@ -470,7 +479,7 @@ class ResNetUNet(nn.Module):
         tmp = features[0]
         x = torch.cat([x,tmp],1)
         
-        output_tensor = x
+        output_tensor = self.final_conv(x)
         return  output_tensor
     
     def _bottom(self,input_tensor):
@@ -492,7 +501,7 @@ class ResNetUNet(nn.Module):
 class ResNetUNet_wHDC(nn.Module):
     def __init__(self,in_chs,out_chs,block=BasicBlock,layers=[3,4,6,3],rates=[1,2,3,5,7,9]):
         
-        if block is BasicBlock:
+        if block.__name__ == "BasicBlock":
             assert layers[-1]*2 == len(rates)
         else:
             assert layers[-1] == len(rates)
@@ -519,7 +528,7 @@ class ResNetUNet_wHDC(nn.Module):
         
         
         # layer4 with HDC
-        if block is Bottleneck:
+        if block.__name__ == "Bottleneck":
             layer4 = []
             for idx in range(0,layers[3]):
                 # self.inplnaes = 256 (change to 512)  || self.inplanes = 512 (change to 1024)
@@ -534,24 +543,32 @@ class ResNetUNet_wHDC(nn.Module):
         
         # decoder
         expansion=block.expansion
+        reduction = int(4/expansion)
         
-        self.upsample1 = nn.Sequential(UPCONV_BN_AC(512*expansion,1024),
-                                       CONV_BN_AC(1024,1024),
-                                       CONV_BN_AC(1024,256*expansion))
+        self.upsample1 = nn.Sequential(CONV_BN_AC(512*expansion,512*expansion//reduction,kernel=1,stride=1,pad=0),
+                                       UPCONV_BN_AC(512*expansion//reduction,512*expansion//reduction),
+                                       CONV_BN_AC(512*expansion//reduction,256*expansion,kernel=1,stride=1,pad=0)
+                                       )
         
-        self.upsample2 = nn.Sequential(UPCONV_BN_AC(2*256*expansion,512),
-                                       CONV_BN_AC(512,512),
-                                       CONV_BN_AC(512,128*expansion))
+        self.upsample2 = nn.Sequential(CONV_BN_AC(2*256*expansion,256*expansion//reduction,kernel=1,stride=1,pad=0),
+                                       UPCONV_BN_AC(256*expansion//reduction,256*expansion//reduction),
+                                       CONV_BN_AC(256*expansion//reduction,128*expansion,kernel=1,stride=1,pad=0)
+                                       )
         
-        self.upsample3 = nn.Sequential(UPCONV_BN_AC(2*128*expansion,256),
-                                       CONV_BN_AC(256,256),
-                                       CONV_BN_AC(256,64*expansion))
+        self.upsample3 = nn.Sequential(CONV_BN_AC(2*128*expansion,128*expansion//reduction,kernel=1,stride=1,pad=0),
+                                       UPCONV_BN_AC(128*expansion//reduction,128*expansion//reduction),
+                                       CONV_BN_AC(128*expansion//reduction,64*expansion,kernel=1,stride=1,pad=0)
+                                       )
         
-        self.upsample4 = nn.Sequential(UPCONV_BN_AC(2*64*expansion,128),
-                                       CONV_BN_AC(128,128),
-                                       CONV_BN_AC(128,64))
+        self.upsample4 = nn.Sequential(CONV_BN_AC(2*64*expansion,64*expansion//reduction,kernel=1,stride=1,pad=0),
+                                       UPCONV_BN_AC(64*expansion//reduction,64*expansion//reduction),
+                                       CONV_BN_AC(64*expansion//reduction,64,kernel=1,stride=1,pad=0)
+                                       )
+        
+        self.final_conv = nn.Sequential(CONV_BN_AC(2*64,64),
+                                        CONV_BN_AC(64,64))
         # classifier
-        self.classifier = nn.Conv2d(in_channels=128, 
+        self.classifier = nn.Conv2d(in_channels=64, 
                                     out_channels=out_chs, kernel_size=1)
         
         return
@@ -649,7 +666,7 @@ class ResNetUNet_wHDC(nn.Module):
         tmp = features[0]
         x = torch.cat([x,tmp],1)
         
-        output_tensor = x
+        output_tensor = self.final_conv(x)
         return output_tensor
     
     def _bottom(self,input_tensor):
@@ -684,10 +701,10 @@ if __name__=="__main__":
     # resnet_unet_whdc = ResNetUNet_wHDC(in_chs=3,out_chs=5,block=BasicBlock,layers=[3,4,6,3],rates=[1,2,3,5,7,9])
     resnet_unet_whdc = ResNetUNet_wHDC(in_chs=3,out_chs=5,block=Bottleneck,layers=[3,4,6,3],rates=[1,2,5])
     with torch.no_grad():
-        # output_1 = resnet(input_)
-        # output_2 = resnet_fcn(input_)
-        # output_3 = resnet_unet(input_)
-        output_4 = resnet_unet_whdc(input_)
-        print(output_4.shape)
+        # output_ = resnet(input_)
+        # output_ = resnet_fcn(input_)
+        # output_ = resnet_unet(input_)
+        output_ = resnet_unet_whdc(input_)
+        print(output_.shape)
         
         
