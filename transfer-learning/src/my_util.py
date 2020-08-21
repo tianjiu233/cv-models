@@ -104,7 +104,7 @@ class TTA(object):
             elif self.mode == "max":
                 fusion,_ = torch.max(fusion,axis=-1) # val/idx  [h,w,cls_num]
             
-        return fusion
+        return fusion # torch.tensor [h,w,c]
         
     
 if __name__ == "__main__":

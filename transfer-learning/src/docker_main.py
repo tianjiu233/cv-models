@@ -18,8 +18,11 @@ import torch
 from torch.utils.data import DataLoader
 
 from trainer import Trainer
+
 from model.UNet import Improved_UNet
-from model.ResNetModel import ResNet34UNet
+from model.ResNetZoo import BasicBlock,Bottleneck
+from model.ResNetZoo import ResNetUNet_wHDC
+from model.SEZoo import ResNetUNet_wHDC_wSEConv
 
 import GFChallenge
 from GFChallenge import GF4Test
@@ -139,12 +142,12 @@ if __name__=="__main__":
    
     
     # get the path
-    input_path = sys.argv[1]
-    output_path = sys.argv[2]
+    #input_path = sys.argv[1]
+    #output_path = sys.argv[2]
     
     
-    #input_path = r"D:\repo\data\GF\Val\image"
-    #output_path = r"D:\output_path"
+    input_path = r"D:\repo\data\GF\Val\image"
+    output_path = r"D:\output_path"
     
     
     print("get input_path:{}".format(input_path))
@@ -168,12 +171,12 @@ if __name__=="__main__":
     # define the model
     in_chs = 3
     cls_num = 9 # GF-changllenge data
-    # net = ResNet34UNet(in_chs=in_chs,cls_num=cls_num)
-    net = Improved_UNet(in_chs=in_chs,cls_num=cls_num)
+    net = ResNetUNet_wHDC_wSEConv(in_chs=in_chs, out_chs=cls_num,block=BasicBlock,layers=[3,4,6,3],rates=[1,2,3,5,7,9])
+    # net = Improved_UNet(in_chs=in_chs,cls_num=cls_num)
     
     # build the trainer
-    model_path = "/workspace/checkpoint"
-    #model_path ="../checkpoint"
+    #model_path = "/workspace/checkpoint"
+    model_path ="../checkpoint"
     trainer = Trainer(net,cuda=cuda,model_path=model_path)
     
     # restore the model

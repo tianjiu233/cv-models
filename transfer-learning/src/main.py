@@ -104,8 +104,8 @@ if __name__=="__main__":
     # define the model
     # net = Improved_UNet(in_chs=in_chs,cls_num=cls_num)
     # ------ ResNet34 ------
-    # net = ResNetUNet_wHDC(in_chs=in_chs, out_chs=cls_num,block=BasicBlock,layers=[3,4,6,3],rates=[1,2,3,5,7,9])
-    net = ResNetUNet_wHDC_wSEConv(in_chs=in_chs, out_chs=cls_num,block=BasicBlock,layers=[3,4,6,3],rates=[1,2,3,5,7,9])
+    # net = ResNetUNet_wHDC(in_chs=in_chs, out_chs=cls_num,block=BasicBlock,layers=[3,4,6,3],rates=[1,2,5,7,9,17])
+    net = ResNetUNet_wHDC_wSEConv(in_chs=in_chs, out_chs=cls_num,block=BasicBlock,layers=[3,4,6,3],rates=[1,2,5,7,9,17])
     
     # ------ ResNet50 ------
     # net = ResNetUNet_wHDC_wSEConv(in_chs=in_chs, out_chs=cls_num,block=Bottleneck,layers=[3,4,6,3],rates=[1,2,5])

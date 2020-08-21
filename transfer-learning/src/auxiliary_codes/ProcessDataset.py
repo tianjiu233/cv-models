@@ -26,7 +26,9 @@ def PartitionDataset(OriginalDataDir,OriginalLabelDir,
     for item in files:
         if item.endswith(suffix):
             data.append(item.split(suffix)[0])
-            
+    
+    # shuffle the data
+    random.shuffle(data)
     k = round(ration*len(data))
     random.shuffle(data)
     train_data = data[0:k]
