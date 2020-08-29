@@ -13,6 +13,7 @@ import torch.nn as nn
 
 import torch.nn.functional as F
 
+import torchvision.models as tmodel
 
 class DUC(nn.Module):
     def __init__(self, inplanes, planes, upscale_factor=2):
@@ -206,11 +207,11 @@ class Softmax2d(nn.Module):
         
         return output_
 
-class EffecientFCN(nn.Module):
+class EfficientFCN(nn.Module):
     def __init__(self,in_chs,out_chs, num_of_sp_weight=64,
                  block=BasicBlock,layers=[3,4,6,3]):
         self.inplanes = 64
-        super(EffecientFCN,self).__init__()
+        super(EfficientFCN,self).__init__()
         
         self.num_of_sp_weight = num_of_sp_weight
         
@@ -236,8 +237,8 @@ class EffecientFCN(nn.Module):
             self.os_8_r_conv = CONV_BN_AC(in_chs=expansion**128,out_chs=512,kernel=1,stride=1,dilation=1,pad=0,bias=False)
         else:
             self.os_32_r_conv = conv1x1(in_chs=expansion*512,out_chs=512,stride=1,pad=0,bias=False)
-            self.os_16_r_conv = conv1x1(in_chs=expansion*256,out_chs=256,stride=1,pad=0,bias=False)
-            self.os_8_r_conv = conv1x1(in_chs=expansion*128,out_chs=128,stride=1,pad=0,bias=False)
+            self.os_16_r_conv = conv1x1(in_chs=expansion*256,out_chs=512,stride=1,pad=0,bias=False)
+            self.os_8_r_conv = conv1x1(in_chs=expansion*128,out_chs=512,stride=1,pad=0,bias=False)
         
         # bilinear
         # down
@@ -316,6 +317,21 @@ class EffecientFCN(nn.Module):
             layers.append(block(self.inplanes,planes))
         return nn.Sequential(*layers)
     
+    def _replace_wpretrained_weight(self):
+        pretrained_net = tmodel.resnet101(pretrained=True)
+        
+        # part1
+        self.conv1 = pretrianed_net.conv1
+        self.bn = pretrained_net.bn1
+        self.maxpool = pretrained_net.maxpool
+        self.relu = pretrained_net.relu
+        # layers:1,2,3,4
+        self.layer1 = pretrained_net.layer1
+        self.layer2 = pretrained_net.layer2
+        self.layer3 = pretrained_net.layer3
+        self.layer4 = pretrained_net.layer4
+        return
+        
     
     def forward(self,input_tensor):
         
@@ -330,6 +346,13 @@ class EffecientFCN(nn.Module):
         os_16_ = self.layer3(os_8_)
         os_32_ = self.layer4(os_16_)
         
+        
+        # reduce the dimension
+        os_8_ = self.os_8_r_conv(os_8_)
+        os_16_ = self.os_16_r_conv(os_16_)
+        os_32_ = self.os_32_r_conv(os_32_)
+        
+        
         # ------ multi-scale feature fusion ------
         # up & down sample
         os_8_down_ = self.downsample4(os_8_)
@@ -338,17 +361,24 @@ class EffecientFCN(nn.Module):
         os_32_up_ = self.upsamlpe4(os_32_)
         os_16_up_ = self.upsample2(os_16_)
         # fuse
-        os_l_ = torch.cat([os_8_,os_16_up_,os_32_up_])
-        os_s_ = torch.cat([os_8_down_,os_16_down_,os_32_])
+        # print(os_8_.shape)
+        # print(os_16_up_.shape)
+        # print(os_32_up_.shape)
+        os_l_ = torch.cat([os_8_,os_16_up_,os_32_up_],dim=1)
+        os_s_ = torch.cat([os_8_down_,os_16_down_,os_32_],dim=1)
         
         # ------ generate holistic codeword and codeword base map ------ 
         codewords_base_map = self.codewords_conv(os_s_) # [bs,1024,h/32,w/32]
         sp_weight = self.sp_weight_conv(os_s_) # [bs,n,h/32,w/32]
         
-        bs,chs,h_32_,w_32_ = sp_weight.size()
-        
-        new_sp_weight = sp_weight.expand((bs,self.num_of_sp_weight,chs,h_32_,w_32_))
-        new_codewords_base_map = codewords_base_map.expand(bs,self.num_of_sp_weight,chs,h_32_,w_32_)
+        # reshape and implemtation the sepcial multi(actually the onv)
+        bs,chs,h_32_,w_32_ = codewords_base_map.size()
+        new_sp_weight = sp_weight.unsqueeze(2)
+        new_sp_weight = new_sp_weight.expand((bs,self.num_of_sp_weight,chs,h_32_,w_32_))
+        # print(new_sp_weight.shape)
+        new_codewords_base_map = codewords_base_map.unsqueeze(1)
+        new_codewords_base_map = new_codewords_base_map.expand(bs,self.num_of_sp_weight,chs,h_32_,w_32_)
+        # print(new_codewords_base_map.shape)
         # semantic_codebook [bs,num_of_sp_weight,1024]
         semantic_codebook = torch.mul(new_sp_weight,new_codewords_base_map).sum(dim=-1).sum(dim=-1)
         
@@ -382,3 +412,10 @@ class EffecientFCN(nn.Module):
     
 if __name__=="__main__":
     print("test4EfficientFCN")
+    sample = torch.rand((2,3,512,512))
+    net = EfficientFCN(in_chs=3,out_chs=9,num_of_sp_weight=256,
+                 block=Bottleneck,layers=[3,4,23,3])
+    net._replace_wpretrained_weightt
+    with torch.no_grad():
+        output_ = net(sample)
+        print(output_.shape)
