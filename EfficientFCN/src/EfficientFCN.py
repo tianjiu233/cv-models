@@ -321,7 +321,7 @@ class EfficientFCN(nn.Module):
         pretrained_net = tmodel.resnet101(pretrained=True)
         
         # part1
-        self.conv1 = pretrianed_net.conv1
+        self.conv1 = pretrained_net.conv1
         self.bn = pretrained_net.bn1
         self.maxpool = pretrained_net.maxpool
         self.relu = pretrained_net.relu
@@ -370,6 +370,8 @@ class EfficientFCN(nn.Module):
         # ------ generate holistic codeword and codeword base map ------ 
         codewords_base_map = self.codewords_conv(os_s_) # [bs,1024,h/32,w/32]
         sp_weight = self.sp_weight_conv(os_s_) # [bs,n,h/32,w/32]
+        # normalized in spatial
+        sp_weight = self.spatial_softmax(sp_weight)
         
         # reshape and implemtation the sepcial multi(actually the onv)
         bs,chs,h_32_,w_32_ = codewords_base_map.size()
@@ -415,7 +417,7 @@ if __name__=="__main__":
     sample = torch.rand((2,3,512,512))
     net = EfficientFCN(in_chs=3,out_chs=9,num_of_sp_weight=256,
                  block=Bottleneck,layers=[3,4,23,3])
-    net._replace_wpretrained_weightt
-    with torch.no_grad():
-        output_ = net(sample)
-        print(output_.shape)
+    #net._replace_wpretrained_weight()
+    #with torch.no_grad():
+     #   output_ = net(sample)
+     #   print(output_.shape)
