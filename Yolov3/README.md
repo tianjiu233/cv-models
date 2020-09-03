@@ -22,14 +22,14 @@ The result is below, when the model is trained after about 64 epochs.:
 The below are some result examples.
 
 
-![example_1](https://github.com/tianjiu233/detection-models/blob/master/Yolov3/result/img_idx_1.png)
-![example_2](https://github.com/tianjiu233/detection-models/blob/master/Yolov3/result/img_idx_4.png)
-![example_3](https://github.com/tianjiu233/detection-models/blob/master/Yolov3/result/img_idx_5.png)
-![example_4](https://github.com/tianjiu233/detection-models/blob/master/Yolov3/result/img_idx_8.png)
-![example_5](https://github.com/tianjiu233/detection-models/blob/master/Yolov3/result/img_idx_17.png)
-![example_6](https://github.com/tianjiu233/detection-models/blob/master/Yolov3/result/img_idx_23.png)
-![example_7](https://github.com/tianjiu233/detection-models/blob/master/Yolov3/result/img_idx_21.png)
-![example_8](https://github.com/tianjiu233/detection-models/blob/master/Yolov3/result/img_idx_14.png)
+![example_1](https://github.com/tianjiu233/cv-models/blob/master/Yolov3/result/img_idx_1.png)
+![example_2](https://github.com/tianjiu233/cv-models/blob/master/Yolov3/result/img_idx_4.png)
+![example_3](https://github.com/tianjiu233/cv-models/blob/master/Yolov3/result/img_idx_5.png)
+![example_4](https://github.com/tianjiu233/cv-models/blob/master/Yolov3/result/img_idx_8.png)
+![example_5](https://github.com/tianjiu233/cv-models/blob/master/Yolov3/result/img_idx_17.png)
+![example_6](https://github.com/tianjiu233/cv-models/blob/master/Yolov3/result/img_idx_23.png)
+![example_7](https://github.com/tianjiu233/cv-models/blob/master/Yolov3/result/img_idx_21.png)
+![example_8](https://github.com/tianjiu233/cv-models/blob/master/Yolov3/result/img_idx_14.png)
 
 
 If you have any question, please to contact me.
